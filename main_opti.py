@@ -1,4 +1,3 @@
-import re
 import numpy as np
 import json
 from pyproj import Proj, transform

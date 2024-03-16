@@ -32,7 +32,7 @@ def replace_with_big_square(i, j, size, value):
             traiter[row][col] = True
             if grid[row][col]['dbm_moy'] != 0:
                 dbm_somme += grid[row][col]['dbm_moy']
-                dbm_count += len(grid[row][col]['releves'])
+                dbm_count += grid[row][col]['releves']
 
     dbm_moy = dbm_somme / dbm_count if dbm_count != 0 else 0.
     res.append({
