@@ -54,7 +54,7 @@ for i in range(0, grid.shape[0]-4, 4):
                     for row2 in range(row, row + 2):
                         for col2 in range(col, col + 2):
                             nb_type_2 += 1 if grid[row2][col2]['type'] == types[1] else 0
-                    if nb_type_2 >= 3:
+                    if nb_type_2 >= 2:
                         replace_with_big_square(row, col, 2, types[1])
                     else:
                         for row2 in range(row, row + 2):
