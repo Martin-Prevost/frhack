@@ -1,5 +1,15 @@
+# code
+**/__pycache__/
+.idea/
+
+# files
 *.csv
-*.cgp
+*.qpj
+*.cpg
+*.dbfi
 *.dbf
+*.shp
+*.xlsx
 *.prj
 *.shx
+*.pdf
