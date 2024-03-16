@@ -7,6 +7,7 @@ with open('type.pkl', 'rb') as f:
     data = pickle.load(f)
     grille, len_x, len_y = data['grille'], data['len_x_grid'], data['len_y_grid']
 
+
 traiter = [[False for _ in range(len_y)] for _ in range(len_x)]
 grid = np.array(grille).reshape(len_x-1, len_y-1)
 res = []
@@ -20,10 +21,10 @@ def detect_big_square(i, j, size, value):
     return True
 
 def replace_with_big_square(i, j, size, value):
-    sommet1 = grid[i][j]
-    sommet2 = grid[i][j + size - 1]
-    sommet4 = grid[i + size - 1][j]
-    sommet3 = grid[i + size - 1][j + size - 1]
+    s1_gps = grid[i][j]['s1_gps']
+    s2_gps = grid[i][j + size - 1]['s2_gps']
+    s4_gps = grid[i + size - 1][j]['s4_gps']
+    s3_gps = grid[i + size - 1][j + size - 1]['s3_gps']
     dbm_somme = 0
     dbm_count = 0
     for row in range(i, i + size):
@@ -35,10 +36,10 @@ def replace_with_big_square(i, j, size, value):
 
     dbm_moy = dbm_somme / dbm_count if dbm_count != 0 else 0.
     res.append({
-        'sommet1_lambert': sommet1,
-        'sommet2_lambert': sommet2,
-        'sommet3_lambert': sommet3,
-        'sommet4_lambert': sommet4,
+        's1_gps': s1_gps,
+        's2_gps': s2_gps,
+        's3_gps': s3_gps,
+        's4_gps': s4_gps,
         'dbm_moy': dbm_moy,
         'type': value
     })
@@ -54,9 +55,16 @@ def process_grid():
                 elif grid[i][j]['type'] == type_3 and detect_big_square(i, j, 3, type_3):
                     replace_with_big_square(i, j, 3, type_3)
                 elif grid[i][j]['type'] != type_1:
-                    res.append(grid[i][j])
+                    res.append({
+                        's1_gps': grid[i][j]['s1_gps'],
+                        's2_gps': grid[i][j]['s2_gps'],
+                        's3_gps': grid[i][j]['s3_gps'],
+                        's4_gps': grid[i][j]['s4_gps'],
+                        'dbm_moy': grid[i][j]['dbm_moy'],
+                        'type': grid[i][j]['type']
+                    })
 
 process_grid()
 
 with open("etape3.pkl", "wb") as f:
-    pickle.dump(res, f)
+    pickle.dump({'grille': res}, f)
