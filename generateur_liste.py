@@ -1,6 +1,7 @@
 import numpy as np
 import json
 from pyproj import Proj, transform
+import pickle
 
 data = np.genfromtxt('data.csv', delimiter=';', dtype=str, skip_header=1)
 
@@ -68,7 +69,6 @@ x_centres_gps, y_centres_gps = transform(lambert93, wgs84, np.array(centres_lamb
 print(len(x_centres_gps))
 for i in range(len(x_centres_gps)):
     grille[i]['centre_gps'] = (float(x_centres_gps[i]), float(y_centres_gps[i]))
-
-# Enregistrer la grille au format JSON avec indentation
-with open('grille.json', 'w') as f:
-    json.dump({'grille': grille, 'pas': 100}, f, indent=4)
+    
+with open("grille.pkl", "wb") as fichier:
+    pickle.dump({'grille': grille, 'pas': 100}, fichier)
