@@ -48,8 +48,8 @@ for i in range(0, grid.shape[0]-4, 4):
         if max_index == 2:
             replace_with_big_square(i, j, 4, types[2])
         else:
-            for row in range(i, i + 2, 2):
-                for col in range(j, j + 2, 2):
+            for row in range(i, i + 4, 2):
+                for col in range(j, j + 4, 2):
                     nb_type_2 = 0
                     for row2 in range(row, row + 2):
                         for col2 in range(col, col + 2):
