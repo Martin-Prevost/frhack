@@ -74,7 +74,8 @@ for i in range(len(x_grid)-1):
                 's4_l': sommet4_lambert,
                 'releves': releves,
                 'dbm_moy': float(average_power),
-                'type': None})
+                'type': None,
+                'area': 0})
         else:
             grille.append({
                 'c_l':centre_lambert,
@@ -84,7 +85,8 @@ for i in range(len(x_grid)-1):
                 's4_l': sommet4_lambert,
                 'releves': [],
                 'dbm_moy': 0,
-                'type': None})
+                'type': None,
+                'area': 0})
 
 x_centres_gps, y_centres_gps = transform(lambert93, wgs84, np.array(centres_lambert)[:, 0], np.array(centres_lambert)[:,1])
 x_sommets1_gps, y_sommets1_gps = transform(lambert93, wgs84, np.array(sommets1_lambert)[:, 0], np.array(sommets1_lambert)[:,1])
@@ -99,6 +101,12 @@ for i in range(len(x_centres_gps)):
     grille[i]['s2_gps'] = (float(x_sommets2_gps[i]), float(y_sommets2_gps[i]))
     grille[i]['s3_gps'] = (float(x_sommets3_gps[i]), float(y_sommets3_gps[i]))
     grille[i]['s4_gps'] = (float(x_sommets4_gps[i]), float(y_sommets4_gps[i]))
+    grille[i]['polygon_object'] = Polygon([(float(x_sommets1_gps[i]), float(y_sommets1_gps[i])),
+                                           (float(x_sommets1_gps[i]), float(y_sommets1_gps[i])),
+                                           (float(x_sommets2_gps[i]), float(y_sommets2_gps[i])),
+                                           (float(x_sommets3_gps[i]), float(y_sommets3_gps[i])),
+                                           (float(x_sommets4_gps[i]), float(y_sommets4_gps[i]))
+                                           ])
 
 shapes_files = {
     "RUR": rurales_file,
@@ -110,20 +118,21 @@ for key, value in shapes_files.items():
     with fiona.open(value) as shapefile:
         for record in shapefile:
             for shape in record['geometry']['coordinates']:
-                try:
-                    if not isinstance(shape[0], list):
-                        poly = Polygon(shape)
-                    else:
-                        poly = Polygon(shape[0])
+                if not isinstance(shape[0], list):
+                    poly = Polygon(shape)
+                else:
+                    poly = Polygon(shape[0])
 
-                    for carre in grille:
-                        if carre["type"] is None:
-                            coords = carre["centre_gps"]
-                            point = Point(coords[0], coords[1])
-                            if poly.contains(point):
-                                carre["type"] = key
-                except:
-                    print("erreur")
+                for carre in grille:
+                    carre_poly = carre["polygon_object"]
+                    intersection_area = carre_poly.intersection(poly).area
+                    overlap_percentage = (intersection_area / carre_poly.area) * 100
+
+                    if carre["area"] < overlap_percentage:
+                        carre["type"] = key
+
+                    carre["area"] = overlap_percentage
+
 
 
 len_x = len(x_grid)
