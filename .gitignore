@@ -16,3 +16,5 @@ test.py
 *.prj
 *.shx
 *.pdf
+
+grille.json
