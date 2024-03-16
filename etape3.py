@@ -32,7 +32,7 @@ def replace_with_big_square(i, j, size, value):
             traiter[row][col] = True
             if grid[row][col]['dbm_moy'] != 0:
                 dbm_somme += grid[row][col]['dbm_moy']
-                dbm_count += grid[row][col]['releves']
+                dbm_count += len(grid[row][col]['releves'])
 
     dbm_moy = dbm_somme / dbm_count if dbm_count != 0 else 0.
     res.append({
@@ -49,7 +49,7 @@ def process_grid():
     for i in range(grid.shape[0]):
         for j in range(grid.shape[1]):
             if not traiter[i][j]:
-                type_1, type_2, type_3 = 'URB', 'RUR', 'PER'
+                type_1, type_2, type_3 = 'URB', 'PER', 'RUR'
                 if grid[i][j]['type'] == type_2 and detect_big_square(i, j, 2, type_2):
                     replace_with_big_square(i, j, 2, type_2)
                 elif grid[i][j]['type'] == type_3 and detect_big_square(i, j, 3, type_3):
@@ -65,6 +65,7 @@ def process_grid():
                     })
 
 process_grid()
+print(len(res))
 
 with open("etape3.pkl", "wb") as f:
     pickle.dump({'grille': res}, f)
