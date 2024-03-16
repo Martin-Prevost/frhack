@@ -16,7 +16,7 @@ selected_operator = "OP1"
 
 data = np.genfromtxt(filename, delimiter=';', dtype=str, skip_header=1)
 
-data = data[data[:, 4] == selected_operator]
+#data = data[data[:, 4] == selected_operator]
 
 ids = data[:, 0]
 x = data[:, 1].astype(int)
@@ -100,7 +100,7 @@ for i in range(len(x_centres_gps)):
     grille[i]['s3_gps'] = (float(x_sommets3_gps[i]), float(y_sommets3_gps[i]))
     grille[i]['s4_gps'] = (float(x_sommets4_gps[i]), float(y_sommets4_gps[i]))
 
-
+print("mon étape")
 shapes_files = {
     "RUR": rurales_file,
     "PER": peri_urbaines_file,
@@ -126,6 +126,68 @@ for key, value in shapes_files.items():
                 except:
                     print("erreur")
 
+print("fin etape")
+
+len_x = len(x_grid)
+len_y = len(y_grid)
+
+traiter = [[False for _ in range(len_y)] for _ in range(len_x)]
+grid = np.array(grille).reshape(len_x-1, len_y-1)
+res = []
+
+def detect_big_square(i, j, size, value):
+    max_row, max_col = grid.shape
+    for row in range(i, i + size):
+        for col in range(j, j + size):
+            if row >= max_row or col >= max_col or grid[row][col]['type'] != value or traiter[row][col]:
+                return False
+    return True
+
+def replace_with_big_square(i, j, size, value):
+    s1_gps = grid[i][j]['s1_gps']
+    s2_gps = grid[i][j + size - 1]['s4_gps']
+    s4_gps = grid[i + size - 1][j]['s2_gps']
+    s3_gps = grid[i + size - 1][j + size - 1]['s3_gps']
+    dbm_somme = 0
+    dbm_count = 0
+    for row in range(i, i + size):
+        for col in range(j, j + size):
+            traiter[row][col] = True
+            if grid[row][col]['dbm_moy'] != 0:
+                dbm_somme += grid[row][col]['dbm_moy']
+                dbm_count += len(grid[row][col]['releves'])
+
+    dbm_moy = dbm_somme / dbm_count if dbm_count != 0 else 0.
+    res.append({
+        's1_gps': s1_gps,
+        's2_gps': s2_gps,
+        's3_gps': s3_gps,
+        's4_gps': s4_gps,
+        'dbm_moy': dbm_moy,
+        'type': value
+    })
+
+
+for i in range(grid.shape[0]):
+    for j in range(grid.shape[1]):
+        if not traiter[i][j]:
+            type_1, type_2, type_3 = 'URB', 'RUR', 'PER'
+            if grid[i][j]['type'] == type_2 and detect_big_square(i, j, 2, type_2):
+                replace_with_big_square(i, j, 2, type_2)
+            elif grid[i][j]['type'] == type_3 and detect_big_square(i, j, 3, type_3):
+                replace_with_big_square(i, j, 3, type_3)
+            elif grid[i][j]['type'] != None:
+                res.append({
+                    's1_gps': grid[i][j]['s1_gps'],
+                    's2_gps': grid[i][j]['s2_gps'],
+                    's3_gps': grid[i][j]['s3_gps'],
+                    's4_gps': grid[i][j]['s4_gps'],
+                    'dbm_moy': grid[i][j]['dbm_moy'],
+                    'type': grid[i][j]['type']
+                })
+
+
+print(len(res))
 
 
 
