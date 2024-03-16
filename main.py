@@ -102,9 +102,9 @@ for i in range(len(x_centres_gps)):
 
 
 shapes_files = {
-    "PER": peri_urbaines_file,
     "RUR": rurales_file,
-    "URB": urbaines_file
+    "PER": peri_urbaines_file,
+    "URB": urbaines_file,
 }
 
 for key, value in shapes_files.items():
@@ -118,10 +118,15 @@ for key, value in shapes_files.items():
                         poly = Polygon(shape[0])
 
                     for carre in grille:
-                        coords = carre["centre_gps"]
-                        point = Point(coords[0], coords[1])
-                        if poly.contains(point):
-                            carre["type"] = key
+                        if carre["type"] is None:
+                            coords = carre["centre_gps"]
+                            point = Point(coords[0], coords[1])
+                            if poly.contains(point):
+                                carre["type"] = key
                 except:
                     print("erreur")
+
+
+
+
 
