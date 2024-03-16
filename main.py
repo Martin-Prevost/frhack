@@ -193,13 +193,22 @@ for i in range(0, grid.shape[0]-4, 4):
                     else:
                         for row2 in range(row, row + 2):
                             for col2 in range(col, col + 2):
-                                if grid[row2][col2]['type'] != None:
+                                if grid[row2][col2]['type'] == types[0]:
                                     res.append({
                                         's1_gps': grid[row2][col2]['s1_gps'],
                                         's2_gps': grid[row2][col2]['s2_gps'],
                                         's3_gps': grid[row2][col2]['s3_gps'],
                                         's4_gps': grid[row2][col2]['s4_gps'],
                                         'dbm_moy': grid[row2][col2]['dbm_moy'],
+                                        'type': grid[row2][col2]['type']
+                                    })
+                                elif grid[row2][col2]['type'] != None:
+                                    res.append({
+                                        's1_gps': grid[row2][col2]['s1_gps'],
+                                        's2_gps': grid[row2][col2]['s2_gps'],
+                                        's3_gps': grid[row2][col2]['s3_gps'],
+                                        's4_gps': grid[row2][col2]['s4_gps'],
+                                        'dbm_moy': 0,
                                         'type': grid[row2][col2]['type']
                                     })
 
