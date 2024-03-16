@@ -167,6 +167,20 @@ for i in range(0, grid.shape[0]-4, 4):
                 nb_type[3] += 1 if grid[row][col]['type'] == None else 0
         
         max_index = nb_type.index(max(nb_type))
+        if max_index == 2:
+            replace_with_big_square(i, j, 4, types[2])
+        else:
+            nb_type = [0, 0, 0, 0]
+            for row in range(i, i + 2, 2):
+                for col in range(j, j + 2, 2):
+                    for row2 in range(row, row + 2):
+                        for col2 in range(col, col + 2):
+                            nb_type[0] += 1 if grid[row2][col2]['type'] == types[0] else 0
+                            nb_type[1] += 1 if grid[row2][col2]['type'] == types[1] else 0
+                            nb_type[3] += 1 if grid[row2][col2]['type'] == None else 0
+            
+            
+        return    
         if max_index == 0:
             for row in range(i, i + 4):
                 for col in range(j, j + 4):
@@ -183,9 +197,33 @@ for i in range(0, grid.shape[0]-4, 4):
             replace_with_big_square(i, j + 2, 2, types[1])
             replace_with_big_square(i + 2, j, 2, types[1])
             replace_with_big_square(i + 2, j + 2, 2, types[1])
-        elif max_index == 2:
-            replace_with_big_square(i, j, 4, types[2])
+        
+        elif max_index == 3:
+            nb_type = [0, 0, 0, 0]
+            for row in range(i, i + 2, 2):
+                for col in range(j, j + 2, 2):
+                    for row2 in range(row, row + 2):
+                        for col2 in range(col, col + 2):
+                            nb_type[0] += 1 if grid[row][col]['type'] == types[0] else 0
+                            nb_type[1] += 1 if grid[row][col]['type'] == types[1] else 0
+                            nb_type[3] += 1 if grid[row][col]['type'] == None else 0
+                    max_index = nb_type.index(max(nb_type))
+                    if max_index == 0:
+                        for row2 in range(row, row + 2):
+                            for col2 in range(col, col + 2):
+                                res.append({
+                                    's1_gps': grid[row2][col2]['s1_gps'],
+                                    's2_gps': grid[row2][col2]['s2_gps'],
+                                    's3_gps': grid[row2][col2]['s3_gps'],
+                                    's4_gps': grid[row2][col2]['s4_gps'],
+                                    'dbm_moy': grid[row2][col2]['dbm_moy'],
+                                    'type': types[0]
+                                })
+                    elif max_index == 1:
+                        replace_with_big_square(row, col, 2, types[1])
+            
 
+                            
 
 print(len(res))
 
