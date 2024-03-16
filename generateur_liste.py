@@ -36,30 +36,30 @@ for i in range(len(x_grid)-1):
         y_lower, y_upper = float(y_grid[j]), float(y_grid[j + 1])
         indices = np.where((x >= x_lower) & (x < x_upper) & (y >= y_lower) & (y < y_upper))
         centre_lambert = (x_lower + x_upper) / 2, (y_lower + y_upper) / 2
-        sommet1_lambert = (x_lower, y_upper)
-        sommet2_lambert = (x_upper, y_upper)
-        sommet3_lambert = (x_lower, y_lower)
-        sommet4_lambert = (x_upper, y_lower)
+        sommet1_lambert = (x_lower, y_lower)
+        sommet2_lambert = (x_upper, y_lower)
+        sommet3_lambert = (x_upper, y_upper)
+        sommet4_lambert = (x_lower, y_upper)
         centres_lambert.append(centre_lambert)
         if len(indices[0]) > 0:
             average_power = np.mean(dbms[indices])
             releves = list(zip(ids[indices], [int(e) for e in dbms[indices]], technos[indices]))
             grille.append({
-                'centre_lambert':centre_lambert,
-                'sommet1_lambert': sommet1_lambert,
-                'sommet2_lambert': sommet2_lambert,
-                'sommet3_lambert': sommet3_lambert,
-                'sommet4_lambert': sommet4_lambert,
+                'c_l':centre_lambert,
+                's1_l': sommet1_lambert,
+                's2_l': sommet2_lambert,
+                's3_l': sommet3_lambert,
+                's4_l': sommet4_lambert,
                 'releves': releves,
                 'dbm_moy': float(average_power),
                 'type': None})
         else:
             grille.append({
-                'centre_lambert':centre_lambert,
-                'sommet1_lambert': sommet1_lambert,
-                'sommet2_lambert': sommet2_lambert,
-                'sommet3_lambert': sommet3_lambert,
-                'sommet4_lambert': sommet4_lambert,
+                'c_l':centre_lambert,
+                's1_l': sommet1_lambert,
+                's2_l': sommet2_lambert,
+                's3_l': sommet3_lambert,
+                's4_l': sommet4_lambert,
                 'releves': [],
                 'dbm_moy': 0,
                 'type': None})            
