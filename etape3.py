@@ -1,13 +1,14 @@
 import json
 import numpy as np
+import pickle
 
 grille, taille_grille = [], 0
-with open('type.json', 'r') as f:
-    data = json.load(f)
-    grille, taille_grille = data['grille'], data['taille_grille']
+with open('type.pkl', 'rb') as f:
+    data = pickle.load(f)
+    grille, len_x, len_y = data['grille'], data['len_x_grid'], data['len_y_grid']
 
-traiter = [[False for _ in range(taille_grille)] for _ in range(taille_grille)]
-grid = np.array(grille).reshape(taille_grille, taille_grille)
+traiter = [[False for _ in range(len_y)] for _ in range(len_x)]
+grid = np.array(grille).reshape(len_x-1, len_y-1)
 res = []
 
 def detect_big_square(i, j, size, value):
@@ -32,7 +33,7 @@ def replace_with_big_square(i, j, size, value):
                 dbm_somme += grid[row][col]['dbm_moy']
                 dbm_count += len(grid[row][col]['releves'])
 
-    dbm_moy = dbm_somme / dbm_count
+    dbm_moy = dbm_somme / dbm_count if dbm_count != 0 else 0.
     res.append({
         'sommet1_lambert': sommet1,
         'sommet2_lambert': sommet2,
@@ -55,10 +56,7 @@ def process_grid():
                 elif grid[i][j]['type'] != type_1:
                     res.append(grid[i][j])
 
-
-print("Grille initiale :")
-
 process_grid()
 
-print("\nGrille après traitement :")
-print(len(res))
+with open("etape3.pkl", "wb") as f:
+    pickle.dump(res, f)
