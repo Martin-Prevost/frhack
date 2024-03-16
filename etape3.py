@@ -55,7 +55,7 @@ def process_grid():
                             's3_gps': grid[row][col]['s3_gps'],
                             's4_gps': grid[row][col]['s4_gps'],
                             'dbm_moy': grid[row][col]['dbm_moy'],
-                            'type': grid[row][col]['type']
+                            'type': types[0]
                         })
             elif max_index == 1:
                 replace_with_big_square(i, j, 2, types[1])
