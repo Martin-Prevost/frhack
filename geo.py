@@ -2,7 +2,7 @@ import pandas as pd
 from pyproj import Proj, transform
 
 # Charger le fichier CSV dans un DataFrame pandas
-data = pd.read_csv('data.csv', delimiter=';')
+data = pd.read_csv('../Fichiers pour challenge 3/Mesures sur 41 45 89.csv', delimiter=';')
 
 # Extraire les coordonnées x et y du DataFrame
 x = data['X']
