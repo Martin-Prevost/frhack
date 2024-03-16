@@ -32,18 +32,19 @@ def replace_with_big_square(i, j, size, value):
         'dbm_moy': dbm_moy,
         'type': value
     })
-    
 
 def process_grid():
     types = ['URB', 'PER', 'RUR']
     for i in range(0, grid.shape[0]-4, 4):
         for j in range(0, grid.shape[1]-4, 4):
-            nb_type = [0, 0, 0]
+            nb_type = [0, 0, 0, 0]
             for row in range(i, i + 4):
                 for col in range(j, j + 4):
                     nb_type[0] += 1 if grid[row][col]['type'] == types[0] else 0
                     nb_type[1] += 1 if grid[row][col]['type'] == types[1] else 0
                     nb_type[2] += 1 if grid[row][col]['type'] == types[2] else 0
+                    nb_type[3] += 1 if grid[row][col]['type'] == None else 0
+            
             max_index = nb_type.index(max(nb_type))
             if max_index == 0:
                 for row in range(i, i + 4):
@@ -63,6 +64,7 @@ def process_grid():
                 replace_with_big_square(i + 2, j + 2, 2, types[1])
             elif max_index == 2:
                 replace_with_big_square(i, j, 4, types[2])
+
 
 process_grid()
 print(len(res))
