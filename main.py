@@ -16,7 +16,7 @@ selected_operator = "OP1"
 
 data = np.genfromtxt(filename, delimiter=';', dtype=str, skip_header=1)
 
-#data = data[data[:, 4] == selected_operator]
+data = data[data[:, 4] == selected_operator]
 
 ids = data[:, 0]
 x = data[:, 1].astype(int)
@@ -100,7 +100,6 @@ for i in range(len(x_centres_gps)):
     grille[i]['s3_gps'] = (float(x_sommets3_gps[i]), float(y_sommets3_gps[i]))
     grille[i]['s4_gps'] = (float(x_sommets4_gps[i]), float(y_sommets4_gps[i]))
 
-print("mon étape")
 shapes_files = {
     "RUR": rurales_file,
     "PER": peri_urbaines_file,
@@ -126,7 +125,6 @@ for key, value in shapes_files.items():
                 except:
                     print("erreur")
 
-print("fin etape")
 
 len_x = len(x_grid)
 len_y = len(y_grid)
@@ -188,6 +186,9 @@ for i in range(grid.shape[0]):
 
 
 print(len(res))
+
+with open("etape3.pkl", "wb") as f:
+    pickle.dump({'grille': res}, f)
 
 
 
