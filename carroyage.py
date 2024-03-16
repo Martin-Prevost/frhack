@@ -20,6 +20,8 @@ y_grid = np.linspace(y_min, y_max, grid_size + 1)
 # Initialiser la matrice pour stocker les moyennes
 average_power = np.full((grid_size, grid_size), np.nan)
 
+grille = []
+
 # Calculer la moyenne des points dans chaque cellule de la grille
 for i in range(grid_size):
     for j in range(grid_size):
@@ -28,6 +30,10 @@ for i in range(grid_size):
         indices = np.where((x >= x_lower) & (x < x_upper) & (y >= y_lower) & (y < y_upper))
         if len(indices[0]) > 0:
             average_power[i, j] = np.mean(puissance_dbm[indices])
+            grille.append([(), x_upper, y_lower, y_upper, list(indices), average_power[i, j]])
+        else:
+            grille.append([x_lower, x_upper, y_lower, y_upper, list(indices), 0])
+
 
 # Créer la grille de points
 X, Y = np.meshgrid(x_grid[:-1], y_grid[:-1])
