@@ -52,14 +52,13 @@ for i in range(len(x_grid)-1):
         sommets4_lambert.append(sommet4_lambert)
         if len(indices[0]) > 0:
             average_power = np.mean(dbms[indices])
-            releves = list(zip(ids[indices], [int(e) for e in dbms[indices]], technos[indices]))
             grille.append({
                 'c_l':centre_lambert,
                 's1_l': sommet1_lambert,
                 's2_l': sommet2_lambert,
                 's3_l': sommet3_lambert,
                 's4_l': sommet4_lambert,
-                'releves': releves,
+                'releves': len(indices[0]),
                 'dbm_moy': float(average_power),
                 'type': None})
         else:
@@ -69,7 +68,7 @@ for i in range(len(x_grid)-1):
                 's2_l': sommet2_lambert,
                 's3_l': sommet3_lambert,
                 's4_l': sommet4_lambert,
-                'releves': [],
+                'releves': 0,
                 'dbm_moy': 0,
                 'type': None})            
 
