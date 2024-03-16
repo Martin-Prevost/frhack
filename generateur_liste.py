@@ -40,11 +40,20 @@ for i in range(grid_size):
             average_power[i, j] = np.mean(dbms[indices])
             releves = list(zip(ids[indices], [int(e) for e in dbms[indices]], technos[indices]))
                      
-            grille.append([centre, sommet1, sommet2, sommet3, sommet4, releves, float(average_power[i, j])])
+            grille.append({'centre':centre, 'sommet1': sommet1, 'sommet2': sommet2, 'sommet3': sommet3, 'sommet4': sommet4, 'releves': releves, 'dbm_moy': float(average_power[i, j])})
         else:
-            grille.append([centre, sommet1, sommet2, sommet3, sommet4, [], 0.0])
+            grille.append({'centre':centre, 'sommet1': sommet1, 'sommet2': sommet2, 'sommet3': sommet3, 'sommet4': sommet4, 'releves': [], 'dbm_moy': 0.0})
             
 
 # Enregistrer la grille au format JSON avec indentation
 with open('grille.json', 'w') as f:
     json.dump(grille, f, indent=4)
+    
+def export_grille():
+    with open('grille.json', 'r') as f:
+        grille = json.load(f)
+    return grille
+
+if __name__ == "__main__":
+    grille = export_grille()
+    # Do something with the grille
