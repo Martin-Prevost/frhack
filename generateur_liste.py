@@ -71,4 +71,7 @@ for i in range(len(x_centres_gps)):
     grille[i]['centre_gps'] = (float(x_centres_gps[i]), float(y_centres_gps[i]))
     
 with open("grille.pkl", "wb") as fichier:
-    pickle.dump({'grille': grille, 'pas': 100}, fichier)
+    pickle.dump({'grille': grille,
+                 'pas': 100,
+                 'len_x_grid': len(x_grid),
+                 'len_y_grid': len(y_grid),}, fichier)
