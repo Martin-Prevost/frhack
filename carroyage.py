@@ -9,12 +9,11 @@ x = data['X']
 y = data['Y']
 puissance_dbm = data['dbm']
 
-
 x_min, x_max = np.min(x), np.max(x)
 y_min, y_max = np.min(y), np.max(y)
 
 # Définir la taille de la grille et le nombre de cellules
-grid_size = 50
+grid_size = 100
 x_grid = np.linspace(x_min, x_max, grid_size + 1)  # Ajoutez 1 à grid_size pour avoir le bon nombre de cellules
 y_grid = np.linspace(y_min, y_max, grid_size + 1)
 
@@ -45,6 +44,7 @@ plt.pcolormesh(X, Y, average_power.T, cmap='RdYlGn', shading='auto', norm=Normal
 # Ajouter des légendes et titres
 plt.xlabel('X')
 plt.ylabel('Y')
+plt.colorbar(label='Puissance moyenne (dBm)')
 plt.title('Carroyage de la puissance moyenne (dBm)')
 
 # Afficher le graphique
