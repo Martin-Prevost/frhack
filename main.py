@@ -102,7 +102,7 @@ for i in range(len(x_centres_gps)):
 
 
 shapes_files = {
-    "PERI": peri_urbaines_file,
+    "PER": peri_urbaines_file,
     "RUR": rurales_file,
     "URB": urbaines_file
 }
@@ -124,5 +124,4 @@ for key, value in shapes_files.items():
                             carre["type"] = key
                 except:
                     print("erreur")
-
 
