@@ -27,10 +27,10 @@ y_grid = np.linspace(y_min, y_max, grid_size + 1)
 average_power = np.full((grid_size, grid_size), np.nan)
 
 grille = []
+centres_lambert = []
 
 # Calculer la moyenne des points dans chaque cellule de la grille
 for i in range(grid_size):
-    print(i)
     for j in range(grid_size):
         x_lower, x_upper = float(x_grid[i]), float(x_grid[i + 1])
         y_lower, y_upper = float(y_grid[j]), float(y_grid[j + 1])
@@ -40,7 +40,7 @@ for i in range(grid_size):
         sommet2_lambert = (x_upper, y_upper)
         sommet3_lambert = (x_lower, y_lower)
         sommet4_lambert = (x_upper, y_lower)
-        centre_gps = transform(lambert93, wgs84, (x_lower + x_upper) / 2, (y_lower + y_upper) / 2)
+        centres_lambert.append(centre_lambert)
         if len(indices[0]) > 0:
             average_power[i, j] = np.mean(dbms[indices])
             releves = list(zip(ids[indices], [int(e) for e in dbms[indices]], technos[indices]))
@@ -50,7 +50,6 @@ for i in range(grid_size):
                 'sommet2_lambert': sommet2_lambert,
                 'sommet3_lambert': sommet3_lambert,
                 'sommet4_lambert': sommet4_lambert,
-                'centre_gps':centre_gps,
                 'releves': releves,
                 'dbm_moy': float(average_power[i, j]),
                 'type': None})
@@ -61,10 +60,14 @@ for i in range(grid_size):
                 'sommet2_lambert': sommet2_lambert,
                 'sommet3_lambert': sommet3_lambert,
                 'sommet4_lambert': sommet4_lambert,
-                'centre_gps':centre_gps,
                 'releves': [],
                 'dbm_moy': 0,
                 'type': None})            
+
+x_centres_gps, y_centres_gps = transform(lambert93, wgs84, np.array(centres_lambert)[:, 0], np.array(centres_lambert)[:,1])
+print(len(x_centres_gps))
+for i in range(len(x_centres_gps)):
+    grille[i]['centre_gps'] = (float(x_centres_gps[i]), float(y_centres_gps[i]))
 
 # Enregistrer la grille au format JSON avec indentation
 with open('grille.json', 'w') as f:
