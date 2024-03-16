@@ -54,7 +54,7 @@ def process_grid():
                     replace_with_big_square(i, j, 2, type_2)
                 elif grid[i][j]['type'] == type_3 and detect_big_square(i, j, 3, type_3):
                     replace_with_big_square(i, j, 3, type_3)
-                elif grid[i][j]['type'] == type_1 or grid[i][j]['type'] == type_2 or grid[i][j]['type'] == type_3:
+                elif grid[i][j]['type'] != None:
                     res.append({
                         's1_gps': grid[i][j]['s1_gps'],
                         's2_gps': grid[i][j]['s2_gps'],
