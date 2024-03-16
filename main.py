@@ -1,10 +1,14 @@
-import re
 import numpy as np
-import json
 from pyproj import Proj, transform
 import pickle
 from shapely.geometry import Polygon, Point
 import fiona
+import shapely.geometry as sg
+import matplotlib.pyplot as plt
+import geopandas as gpd
+from alive_progress import alive_bar
+import os
+
 
 filename = "data/Mesures sur 41 45 89.csv"
 
@@ -122,18 +126,17 @@ for key, value in shapes_files.items():
                     poly = Polygon(shape)
                 else:
                     poly = Polygon(shape[0])
+                with alive_bar(len(grille)) as bar:
+                    for carre in grille:
+                        carre_poly = carre["polygon_object"]
+                        intersection_area = carre_poly.intersection(poly).area
+                        overlap_percentage = (intersection_area / carre_poly.area) * 100
 
-                for carre in grille:
-                    carre_poly = carre["polygon_object"]
-                    intersection_area = carre_poly.intersection(poly).area
-                    overlap_percentage = (intersection_area / carre_poly.area) * 100
+                        if carre["area"] < overlap_percentage:
+                            carre["type"] = key
 
-                    if carre["area"] < overlap_percentage:
-                        carre["type"] = key
-
-                    carre["area"] = overlap_percentage
-
-
+                        carre["area"] = overlap_percentage
+                        bar()
 
 len_x = len(x_grid)
 len_y = len(y_grid)
@@ -205,6 +208,80 @@ print(len(res))
 with open("etape3.pkl", "wb") as f:
     pickle.dump({'grille': res}, f)
 
+json_data = {'grille': res}
+
+file1 = "data/Shape Depts 41 45 89.shp"
+file2 = "data/Shape Blois Orleans Auxerre.shp"
+file3 = "data/Zones RURALES 41 45 89.shp"
+file4 = "data/Zones URBAINES 41 45 89.shp"
+file5 = "data/Zones PERI URBAINES 41 45 89.shp"
+
+files = [file1,file2,file3,file4,file5]
+
+polygons = []
+labels_type = []
+labels_moy = []
 
 
+if not os.path.exists("output/"):
+    os.mkdir("output")
 
+with alive_bar(len(json_data["grille"])) as bar:
+    for entry in json_data["grille"]:
+        x1, y1 = entry["s1_gps"]
+        x2, y2 = entry["s2_gps"]
+        x3, y3 = entry["s3_gps"]
+        x4, y4 = entry["s4_gps"]
+        moy = entry["dbm_moy"]
+        
+        polygon = sg.Polygon([(x1, y1), (x2, y2), (x3, y3), (x4, y4)])
+        polygons.append(polygon)
+        x = [x1, x2, x3, x4]
+        y = [y1, y2, y3, y4]
+
+        ctype = entry["type"]
+        color = None
+        label = None
+        if ctype == "URB":
+            color = "r"
+            label = "Urbain"
+        elif ctype == "RUR":
+            color = "g"
+            label = "Rural"
+        elif ctype == "PER":
+            color = "b"
+            label = "Peri-Rural"
+        else:
+            color = "k"
+            label = "None"
+        
+        if moy == 0:
+            color = "gray"
+            label = "Null"
+        labels_type.append(label)
+        plt.fill(x, y,color=color)
+
+        if moy >= -85:
+            color = "r" 
+            label = "Bonne"
+        elif moy < -85 and moy >= -105:
+            color = "g" 
+            label = "Moyenne"
+        elif moy < -105:
+            color = "b" 
+            label = "Mauvaise"
+        labels_moy.append(label)
+
+        bar()
+
+gdf = gpd.GeoDataFrame(geometry=polygons, crs='EPSG:4326')
+gdf["label"] = labels_type
+gdf.to_file('output/output_type.shp')
+print("Saved shapefile to output/output_type")
+
+gdf = gpd.GeoDataFrame(geometry=polygons, crs='EPSG:4326')
+gdf["label"] = labels_moy
+gdf.to_file('output/output_moy.shp')
+print("Saved shapefile to output/output_moy")
+
+plt.show()
