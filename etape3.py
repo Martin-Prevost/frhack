@@ -22,8 +22,8 @@ def detect_big_square(i, j, size, value):
 
 def replace_with_big_square(i, j, size, value):
     s1_gps = grid[i][j]['s1_gps']
-    s2_gps = grid[i][j + size - 1]['s2_gps']
-    s4_gps = grid[i + size - 1][j]['s4_gps']
+    s2_gps = grid[i][j + size - 1]['s4_gps']
+    s4_gps = grid[i + size - 1][j]['s2_gps']
     s3_gps = grid[i + size - 1][j + size - 1]['s3_gps']
     dbm_somme = 0
     dbm_count = 0
