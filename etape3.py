@@ -16,7 +16,7 @@ def detect_big_square(i, j, size, value):
     max_row, max_col = grid.shape
     for row in range(i, i + size):
         for col in range(j, j + size):
-            if row >= max_row or col >= max_col or grid[row][col]['type'] != value:
+            if row >= max_row or col >= max_col or grid[row][col]['type'] != value or traiter[row][col]:
                 return False
     return True
 
