@@ -19,19 +19,19 @@ x_min, x_max = np.min(x), np.max(x)
 y_min, y_max = np.min(y), np.max(y)
 
 # Définir la taille de la grille et le nombre de cellules
-grid_size = 50
-x_grid = np.linspace(x_min, x_max, grid_size + 1)  # Ajoutez 1 à grid_size pour avoir le bon nombre de cellules
-y_grid = np.linspace(y_min, y_max, grid_size + 1)
+pas = 500
+x_grid = np.arange(x_min, x_max + pas, pas)  # Ajoutez 1 à grid_size pour avoir le bon nombre de cellules
+y_grid = np.arange(y_min, y_max + pas, pas)
 
-# Initialiser la matrice pour stocker les moyennes
-average_power = np.full((grid_size, grid_size), np.nan)
+print("longueur x_grid", len(x_grid))
+print("longueur y_grid", len(y_grid))
 
 grille = []
 centres_lambert = []
 
 # Calculer la moyenne des points dans chaque cellule de la grille
-for i in range(grid_size):
-    for j in range(grid_size):
+for i in range(len(x_grid)-1):
+    for j in range(len(y_grid)-1):
         x_lower, x_upper = float(x_grid[i]), float(x_grid[i + 1])
         y_lower, y_upper = float(y_grid[j]), float(y_grid[j + 1])
         indices = np.where((x >= x_lower) & (x < x_upper) & (y >= y_lower) & (y < y_upper))
@@ -42,7 +42,7 @@ for i in range(grid_size):
         sommet4_lambert = (x_upper, y_lower)
         centres_lambert.append(centre_lambert)
         if len(indices[0]) > 0:
-            average_power[i, j] = np.mean(dbms[indices])
+            average_power = np.mean(dbms[indices])
             releves = list(zip(ids[indices], [int(e) for e in dbms[indices]], technos[indices]))
             grille.append({
                 'centre_lambert':centre_lambert,
@@ -51,7 +51,7 @@ for i in range(grid_size):
                 'sommet3_lambert': sommet3_lambert,
                 'sommet4_lambert': sommet4_lambert,
                 'releves': releves,
-                'dbm_moy': float(average_power[i, j]),
+                'dbm_moy': float(average_power),
                 'type': None})
         else:
             grille.append({
@@ -71,4 +71,4 @@ for i in range(len(x_centres_gps)):
 
 # Enregistrer la grille au format JSON avec indentation
 with open('grille.json', 'w') as f:
-    json.dump({'grille': grille, 'taille_grille': grid_size}, f, indent=4)
+    json.dump({'grille': grille, 'pas': 100}, f, indent=4)
