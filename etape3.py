@@ -10,14 +10,6 @@ with open('type.pkl', 'rb') as f:
 grid = np.array(grille).reshape(len_x-1, len_y-1)
 res = []
 
-def detect_big_square(i, j, size, value):
-    max_row, max_col = grid.shape
-    for row in range(i, i + size):
-        for col in range(j, j + size):
-            if row >= max_row or col >= max_col or grid[row][col]['type'] != value or traiter[row][col]:
-                return False
-    return True
-
 def replace_with_big_square(i, j, size, value):
     s1_gps = grid[i][j]['s1_gps']
     s2_gps = grid[i][j + size - 1]['s4_gps']
@@ -43,32 +35,34 @@ def replace_with_big_square(i, j, size, value):
     
 
 def process_grid():
-    type_1, type_2, type_3 = 'URB', 'PER', 'RUR'
-    for i in range(0, grid.shape[0], 3):
-        for j in range(0, grid.shape[1], 3):
-            nb_type_1, nb_type_2, nb_type_3 = 0, 0, 0
-            for row in range(i, i + 3):
-                for col in range(j, j + 3):
-                    # compter le nombre de type_1, type_2, type_3
-                    nb_type_1 += 1 if grid[row][col]['type'] == type_1 else 0
-            
-            nb_type_1, nb_type_2, nb_type_3 = grid[i:i+3, j:j+3]['type'].tolist().count('URB'), grid[i:i+3, j:j+3]['type'].tolist().count('PER'), grid[i:i+3, j:j+3]['type'].tolist().count('RUR')
-            print(nb_type_1, nb_type_2, nb_type_3)
-            return
-            type_1, type_2, type_3 = 'URB', 'PER', 'RUR'
-            if grid[i][j]['type'] == type_2 and detect_big_square(i, j, 2, type_2):
-                replace_with_big_square(i, j, 2, type_2)
-            elif grid[i][j]['type'] == type_3 and detect_big_square(i, j, 3, type_3):
-                replace_with_big_square(i, j, 3, type_3)
-            elif grid[i][j]['type'] != None:
-                res.append({
-                    's1_gps': grid[i][j]['s1_gps'],
-                    's2_gps': grid[i][j]['s2_gps'],
-                    's3_gps': grid[i][j]['s3_gps'],
-                    's4_gps': grid[i][j]['s4_gps'],
-                    'dbm_moy': grid[i][j]['dbm_moy'],
-                    'type': grid[i][j]['type']
-                })
+    types = ['URB', 'PER', 'RUR']
+    for i in range(0, grid.shape[0]-4, 4):
+        for j in range(0, grid.shape[1]-4, 4):
+            nb_type = [0, 0, 0]
+            for row in range(i, i + 4):
+                for col in range(j, j + 4):
+                    nb_type[0] += 1 if grid[row][col]['type'] == types[0] else 0
+                    nb_type[1] += 1 if grid[row][col]['type'] == types[1] else 0
+                    nb_type[2] += 1 if grid[row][col]['type'] == types[2] else 0
+            max_index = nb_type.index(max(nb_type))
+            if max_index == 0:
+                for row in range(i, i + 4):
+                    for col in range(j, j + 4):
+                        res.append({
+                            's1_gps': grid[row][col]['s1_gps'],
+                            's2_gps': grid[row][col]['s2_gps'],
+                            's3_gps': grid[row][col]['s3_gps'],
+                            's4_gps': grid[row][col]['s4_gps'],
+                            'dbm_moy': grid[row][col]['dbm_moy'],
+                            'type': grid[row][col]['type']
+                        })
+            elif max_index == 1:
+                replace_with_big_square(i, j, 2, types[1])
+                replace_with_big_square(i, j + 2, 2, types[1])
+                replace_with_big_square(i + 2, j, 2, types[1])
+                replace_with_big_square(i + 2, j + 2, 2, types[1])
+            elif max_index == 2:
+                replace_with_big_square(i, j, 4, types[2])
 
 process_grid()
 print(len(res))
