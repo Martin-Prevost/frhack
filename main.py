@@ -226,10 +226,6 @@ for i in range(0, grid.shape[0] - 4, 4):
 
 print(len(res))
 
-with open("etape3.pkl", "wb") as f:
-    pickle.dump({'grille': res}, f)
-
-json_data = {'grille': res}
 
 polygons = []
 labels_type = []
@@ -238,8 +234,12 @@ labels_moy = []
 if not os.path.exists("output/"):
     os.mkdir("output")
 
-with alive_bar(len(json_data["grille"])) as bar:
-    for entry in json_data["grille"]:
+area_urb = 0
+area_per = 0
+area_rur = 0
+
+with alive_bar(len(res)) as bar:
+    for entry in res:
         x1, y1 = entry["s1_gps"]
         x2, y2 = entry["s2_gps"]
         x3, y3 = entry["s3_gps"]
@@ -257,21 +257,21 @@ with alive_bar(len(json_data["grille"])) as bar:
         if ctype == "URB":
             color = "r"
             label = "Urbain"
+            #area_urb += area
+
         elif ctype == "RUR":
             color = "g"
             label = "Rural"
+            #area_rur += area
         elif ctype == "PER":
             color = "b"
             label = "Peri-Rural"
+            #area_per += area
         else:
             color = "k"
             label = "None"
 
-        if moy == 0:
-            color = "gray"
-            label = "Null"
         labels_type.append(label)
-        plt.fill(x, y, color=color)
 
         if moy >= -85:
             color = "r"
@@ -282,7 +282,11 @@ with alive_bar(len(json_data["grille"])) as bar:
         elif moy < -105:
             color = "b"
             label = "Mauvaise"
+        if moy == 0:
+            color = "gray"
+            label = "Null"
         labels_moy.append(label)
+        plt.fill(x, y, color=color)
 
         bar()
 
@@ -299,3 +303,5 @@ print("Saved shapefile to output/output_moy")
 title = "Opérateur " + selected_operator + ", Techno " + selected_techno + ", Taille " + str(size_urb/1000) + " km"
 plt.title(title)
 plt.show()
+
+print(area_urb, area_rur, area_per)
