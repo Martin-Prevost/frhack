@@ -175,84 +175,39 @@ grid = np.array(grille).reshape(len_x - 1, len_y - 1)
 res = []
 
 
-def replace_with_big_square(i, j, size, value):
-    s1_gps = grid[i][j]['s1_gps']
-    s2_gps = grid[i][j + size - 1]['s4_gps']
-    s4_gps = grid[i + size - 1][j]['s2_gps']
-    s3_gps = grid[i + size - 1][j + size - 1]['s3_gps']
-    dbm_somme = 0
-    dbm_count = 0
-    for row in range(i, i + size):
-        for col in range(j, j + size):
-            if grid[row][col]['dbm_moy'] != 0:
-                dbm_somme += grid[row][col]['dbm_moy']
-                dbm_count += len(grid[row][col]['releves'])
+print(grid.shape)
+point_depart = [40, 30]
+point_arrivee = [100, 30]
 
-    dbm_moy = dbm_somme / dbm_count if dbm_count != 0 else 0.
-    res.append({
-        's1_gps': s1_gps,
-        's2_gps': s2_gps,
-        's3_gps': s3_gps,
-        's4_gps': s4_gps,
-        'dbm_moy': dbm_moy,
-        'dbm_count': dbm_count,
-        'type': value
-    })
+def trouver_chemin_max(matrice, point_depart, point_arrivee):
+    # Fonction auxiliaire pour trouver le voisinage valide d'un point
+    def voisinage(point):
+        x, y = point
+        voisins = [(x+1, y), (x-1, y), (x, y+1), (x, y-1)]
+        return [(nx, ny) for nx, ny in voisins if 0 <= nx < len(matrice) and 0 <= ny < len(matrice[0])]
 
+    # Fonction auxiliaire pour trouver le voisin avec la valeur maximale
+    def voisin_max(voisins):
+        return max(voisins, key=lambda v: matrice[v[0]][v[1]]['dbm_moy'])
 
-types = ['URB', 'PER', 'RUR']
-for i in range(0, grid.shape[0] - 4, 4):
-    for j in range(0, grid.shape[1] - 4, 4):
-        nb_type_rur = 0
-        for row in range(i, i + 4):
-            for col in range(j, j + 4):
-                nb_type_rur += 1 if grid[row][col]['type'] == types[2] else 0
+    chemin = [point_depart]
+    point_actuel = point_depart
 
-        if nb_type_rur >= 5:
-            replace_with_big_square(i, j, 4, types[2])
-        else:
-            tab_4 = []
-            tab_1 = []
-            cpt = 0
-            cpt_null = 0
-            for row in range(i, i + 4, 2):
-                for col in range(j, j + 4, 2):
-                    nb_type_2 = 0
-                    nb_type_1 = 0
-                    for row2 in range(row, row + 2):
-                        for col2 in range(col, col + 2):
-                            nb_type_2 += 1 if grid[row2][col2]['type'] == types[1] else 0
-                            nb_type_1 += 1 if grid[row2][col2]['type'] == types[0] else 0
-                    if nb_type_2 >= nb_type_1 and nb_type_2 >= 1:
-                        tab_4.append([row, col, 2, types[1]])
-                        cpt += 4
-                    elif nb_type_1 > 0:
-                        for row2 in range(row, row + 2):
-                            for col2 in range(col, col + 2):
-                                if grid[row2][col2]['type'] != None:
-                                    tab_1.append({
-                                        's1_gps': grid[row2][col2]['s1_gps'],
-                                        's2_gps': grid[row2][col2]['s2_gps'],
-                                        's3_gps': grid[row2][col2]['s3_gps'],
-                                        's4_gps': grid[row2][col2]['s4_gps'],
-                                        'dbm_moy': grid[row2][col2]['dbm_moy'],
-                                        'dbm_count': len(grid[row2][col2]['releves']),
-                                        'type': types[0]
-                                    })
-                                    cpt += 1
-                    else:
-                        cpt_null += 1
-                    
-            if cpt == 16:
-                for m in range(len(tab_4)):
-                    replace_with_big_square(tab_4[m][0], tab_4[m][1], tab_4[m][2], tab_4[m][3])
-                for m in range(len(tab_1)):
-                    res.append(tab_1[m])
-            elif cpt_null < 4:
-                replace_with_big_square(i, j, 4, types[2])
-                                    
+    while point_actuel != point_arrivee:
+        voisins_valides = [voisin for voisin in voisinage(point_actuel) if voisin not in chemin]
+        if not voisins_valides:
+            break
+        point_actuel = voisin_max(voisins_valides)
+        chemin.append(point_actuel)
 
-print(len(res))
+    return [matrice[x][y] for x, y in chemin]
+
+print("Point de départ :", point_depart)
+print("Point d'arrivée :", point_arrivee)
+
+res = trouver_chemin_max(grid, point_depart, point_arrivee)
+print("Chemin avec la valeur maximale :", res)
+
 
 
 polygons = []
@@ -266,8 +221,6 @@ area_urb = 0
 area_per = 0
 area_rur = 0
 
-with open("carroyage.pkl", "wb") as fichier:
-    pickle.dump(res, fichier)
 
 moy_values, squares = [], []
 
@@ -278,11 +231,12 @@ with alive_bar(len(res)) as bar:
         x3, y3 = entry["s3_gps"]
         x4, y4 = entry["s4_gps"]
         moy = entry["dbm_moy"]
+        """
         count = entry["dbm_count"]
 
         if count < nb_valeur_moy:
             continue
-
+        """
 
         polygon = sg.Polygon([(x1, y1), (x2, y2), (x3, y3), (x4, y4)])
         polygons.append(polygon)
