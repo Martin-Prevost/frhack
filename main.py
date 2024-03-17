@@ -5,9 +5,12 @@ from shapely.geometry import Polygon, Point
 import pandas as pd
 import shapely.geometry as sg
 import matplotlib.pyplot as plt
+import matplotlib.cm as cm
 import geopandas as gpd
 from alive_progress import alive_bar
 import os
+import time
+start_time = time.time()
 
 filename = "data/Mesures sur 41 45 89.csv"
 dept_file = "data/Shape Depts 41 45 89.shp"
@@ -138,7 +141,8 @@ grille_gdf = gpd.GeoDataFrame(geometry=grille_polygons)
 grille_gdf.crs = "EPSG:4326"
 
 for key, value in shapes_files.items():
-    
+
+    print("Extracting file %s " % value)
     if value is not None:
         shapefile_gdf = gpd.read_file(value)
         shapefile_gdf.crs = "EPSG:4326"
@@ -149,17 +153,19 @@ for key, value in shapes_files.items():
         joined_gdf = joined_gdf.dropna(subset=["index_right"])
         joined_gdf["index_right"] = joined_gdf["index_right"].astype(int)
 
-        for idx, row in joined_gdf.iterrows():
-           if not pd.isna(row["index_right"]):
-            shapefile_poly = shapefile_gdf.iloc[row["index_right"]]["geometry"]
-            intersection_area = grille_gdf.iloc[idx]["geometry"].intersection(shapefile_poly).area
-            overlap_percentage = (intersection_area / grille_gdf.iloc[idx]["geometry"].area) * 100
+        with alive_bar(len(joined_gdf)) as bar:
+            for idx, row in joined_gdf.iterrows():
+               if not pd.isna(row["index_right"]):
+                shapefile_poly = shapefile_gdf.iloc[row["index_right"]]["geometry"]
+                intersection_area = grille_gdf.iloc[idx]["geometry"].intersection(shapefile_poly).area
+                overlap_percentage = (intersection_area / grille_gdf.iloc[idx]["geometry"].area) * 100
 
-            if grille[idx]["area"] < overlap_percentage:
-                grille[idx]["type"] = key
-                grille[idx]["area"] = overlap_percentage
-            else:
-                grille[idx]["area"] = 0
+                if grille[idx]["area"] < overlap_percentage:
+                    grille[idx]["type"] = key
+                    grille[idx]["area"] = overlap_percentage
+                else:
+                    grille[idx]["area"] = 0
+                bar()
 
 len_x = len(x_grid)
 len_y = len(y_grid)
@@ -241,6 +247,8 @@ area_urb = 0
 area_per = 0
 area_rur = 0
 
+moy_values, squares = [], []
+
 with alive_bar(len(res)) as bar:
     for entry in res:
         x1, y1 = entry["s1_gps"]
@@ -248,11 +256,15 @@ with alive_bar(len(res)) as bar:
         x3, y3 = entry["s3_gps"]
         x4, y4 = entry["s4_gps"]
         moy = entry["dbm_moy"]
-
+        
         polygon = sg.Polygon([(x1, y1), (x2, y2), (x3, y3), (x4, y4)])
         polygons.append(polygon)
         x = [x1, x2, x3, x4]
         y = [y1, y2, y3, y4]
+
+        if moy != 0:
+            moy_values.append(moy)
+            squares.append((x,y))
 
         ctype = entry["type"]
         color = None
@@ -260,16 +272,13 @@ with alive_bar(len(res)) as bar:
         if ctype == "URB":
             color = "r"
             label = "Urbain"
-            #area_urb += area
 
         elif ctype == "RUR":
             color = "g"
             label = "Rural"
-            #area_rur += area
         elif ctype == "PER":
             color = "b"
             label = "Peri-Rural"
-            #area_per += area
         else:
             color = "k"
             label = "None"
@@ -289,9 +298,28 @@ with alive_bar(len(res)) as bar:
             color = "gray"
             label = "Null"
         labels_moy.append(label)
-        plt.fill(x, y, color=color)
 
         bar()
+
+
+cmap = cm.get_cmap('RdYlGn')
+# Normalize the moy values to [0, 1] for color mapping
+print(f"Min : {min(moy_values)} and Max : {max(moy_values)}")
+norm = plt.Normalize(min(moy_values), max(moy_values))
+
+# Plot each square with its corresponding color based on the normalized moy value
+for i in range(len(moy_values)):
+    moy, x ,y = moy_values[i], squares[i][0], squares[i][1]
+    color = cmap(norm(moy))
+    plt.fill(x, y, color=color)
+
+# Add colorbar
+sm = plt.cm.ScalarMappable(cmap=cmap, norm=norm)
+sm.set_array([])
+plt.colorbar(sm, label='Moy Value')
+
+# Show the plot
+plt.gca().set_aspect('equal', adjustable='box')
 
 gdf = gpd.GeoDataFrame(geometry=polygons, crs='EPSG:4326')
 gdf["label"] = labels_type
@@ -305,6 +333,9 @@ print("Saved shapefile to output/output_moy")
 
 title = "Opérateur " + selected_operator + ", Techno " + selected_techno + ", Taille " + str(size_urb/1000) + " km"
 plt.title(title)
-#plt.show()
+
+print("---Execution time : %s seconds ---" % (time.time() - start_time))
+
+plt.show()
 
 print(area_urb, area_rur, area_per)
