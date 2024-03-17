@@ -233,7 +233,7 @@ print("Point de départ :", point_depart)
 print("Point d'arrivée :", point_arrivee)
 
 res = trouver_chemin_max(grid, point_depart, point_arrivee)
-res = trouver_chemin_max(grid, point_arrivee, point_trois)
+res.append(trouver_chemin_max(grid, point_depart, point_trois))
 
 
 polygons = []
