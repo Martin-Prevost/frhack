@@ -201,9 +201,9 @@ def trouver_point_proche(matrice, coord_centre):
 
 
 # Trouver le point le plus proche du centre_gps
-point_depart = trouver_point_proche(grid, (1.309, 47.583))
-point_arrivee = trouver_point_proche(grid, (3.575, 47.889))
-point_trois = trouver_point_proche(grid, (1.908, 47.889))
+pt_1 = trouver_point_proche(grid, (1.309, 47.583))
+pt_2 = trouver_point_proche(grid, (1.908, 47.889))
+pt_3 = trouver_point_proche(grid, (3.575, 47.889))
 
 
 def trouver_chemin_max(matrice, point_depart, point_arrivee):
@@ -229,11 +229,11 @@ def trouver_chemin_max(matrice, point_depart, point_arrivee):
 
     return [matrice[x][y] for x, y in chemin]
 
-print("Point de départ :", point_depart)
-print("Point d'arrivée :", point_arrivee)
-print("Point d'arrivée :", point_trois)
+print("Point de départ :", pt_1)
+print("Point d'arrivée :", pt_2)
+print("Point d'arrivée :", pt_3)
 
-res = trouver_chemin_max(grid, point_depart, point_arrivee) + trouver_chemin_max(grid, point_arrivee, point_trois)
+res = trouver_chemin_max(grid, pt_1, pt_2) + trouver_chemin_max(grid, pt_2, pt_3)
 
 
 polygons = []
