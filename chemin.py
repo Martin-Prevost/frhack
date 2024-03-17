@@ -10,6 +10,8 @@ import geopandas as gpd
 from alive_progress import alive_bar
 import os
 import time
+import math
+
 start_time = time.time()
 
 filename = "data/Mesures sur 41 45 89.csv"
@@ -176,8 +178,32 @@ res = []
 
 
 print(grid.shape)
-point_depart = [40, 30]
-point_arrivee = [100, 30]
+
+def distance_gps(coord1, coord2):
+    # Formule de calcul de la distance entre deux points GPS
+    lat1, lon1 = coord1
+    lat2, lon2 = coord2
+    R = 6371  # Rayon de la Terre en kilomètres
+    dlat = math.radians(lat2 - lat1)
+    dlon = math.radians(lon2 - lon1)
+    a = math.sin(dlat / 2) * math.sin(dlat / 2) + math.cos(math.radians(lat1)) * math.cos(math.radians(lat2)) * math.sin(dlon / 2) * math.sin(dlon / 2)
+    c = 2 * math.atan2(math.sqrt(a), math.sqrt(1 - a))
+    distance = R * c
+    return distance
+
+def trouver_point_proche(matrice, coord_centre):
+    distances = []
+    for i in range(len(matrice)):
+        for j in range(len(matrice[0])):
+            distance = distance_gps(coord_centre, matrice[i][j]['centre_gps'])
+            distances.append((distance, (i, j)))
+    return min(distances)[1]
+
+
+# Trouver le point le plus proche du centre_gps
+point_depart = trouver_point_proche(grid, (1.309, 47.583))
+point_arrivee = trouver_point_proche(grid, (1.908, 47.889))
+
 
 def trouver_chemin_max(matrice, point_depart, point_arrivee):
     # Fonction auxiliaire pour trouver le voisinage valide d'un point
@@ -188,7 +214,7 @@ def trouver_chemin_max(matrice, point_depart, point_arrivee):
 
     # Fonction auxiliaire pour trouver le voisin avec la valeur maximale
     def voisin_max(voisins):
-        return max(voisins, key=lambda v: matrice[v[0]][v[1]]['dbm_moy'])
+        return max(voisins, key=lambda v: (matrice[v[0]][v[1]]['dbm_moy'] if matrice[v[0]][v[1]]['dbm_moy'] != 0 else -120))
 
     chemin = [point_depart]
     point_actuel = point_depart
@@ -206,8 +232,6 @@ print("Point de départ :", point_depart)
 print("Point d'arrivée :", point_arrivee)
 
 res = trouver_chemin_max(grid, point_depart, point_arrivee)
-print("Chemin avec la valeur maximale :", res)
-
 
 
 polygons = []
