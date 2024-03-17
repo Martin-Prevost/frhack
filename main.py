@@ -134,15 +134,18 @@ shapes_files = {
 
 grille_polygons = [carre["polygon_object"] for carre in grille]
 
-# Create a GeoDataFrame for the grille polygons
 grille_gdf = gpd.GeoDataFrame(geometry=grille_polygons)
+grille_gdf.crs = "EPSG:4326"
 
 for key, value in shapes_files.items():
     
     if value is not None:
         shapefile_gdf = gpd.read_file(value)
+        shapefile_gdf.crs = "EPSG:4326"
+        grille_gdf_reprojected = grille_gdf.to_crs(shapefile_gdf.crs)
 
-        joined_gdf =gpd.sjoin(grille_gdf, shapefile_gdf, how="left", op="intersects")
+        joined_gdf = gpd.sjoin(grille_gdf_reprojected, shapefile_gdf, how="left", predicate="intersects")
+
         joined_gdf = joined_gdf.dropna(subset=["index_right"])
         joined_gdf["index_right"] = joined_gdf["index_right"].astype(int)
 
@@ -155,8 +158,8 @@ for key, value in shapes_files.items():
             if grille[idx]["area"] < overlap_percentage:
                 grille[idx]["type"] = key
                 grille[idx]["area"] = overlap_percentage
-        else:
-            grille[idx]["area"] = 0
+            else:
+                grille[idx]["area"] = 0
 
 len_x = len(x_grid)
 len_y = len(y_grid)
@@ -302,6 +305,6 @@ print("Saved shapefile to output/output_moy")
 
 title = "Opérateur " + selected_operator + ", Techno " + selected_techno + ", Taille " + str(size_urb/1000) + " km"
 plt.title(title)
-plt.show()
+#plt.show()
 
 print(area_urb, area_rur, area_per)
