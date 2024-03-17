@@ -18,7 +18,7 @@ urbaines_file = "data/Zones URBAINES 41 45 89.shp"
 
 data = np.genfromtxt(filename, delimiter=';', dtype=str, skip_header=1)
 
-size_urb = 1500
+size_urb = 500
 selected_operator = "OP1"
 techno_list = ["4G", "5G", "all"]
 selected_techno = techno_list[2]
@@ -203,6 +203,10 @@ for i in range(0, grid.shape[0] - 4, 4):
         if nb_type_rur >= 5:
             replace_with_big_square(i, j, 4, types[2])
         else:
+            tab_4 = []
+            tab_1 = []
+            cpt = 0
+            cpt_null = 0
             for row in range(i, i + 4, 2):
                 for col in range(j, j + 4, 2):
                     nb_type_2 = 0
@@ -212,12 +216,13 @@ for i in range(0, grid.shape[0] - 4, 4):
                             nb_type_2 += 1 if grid[row2][col2]['type'] == types[1] else 0
                             nb_type_1 += 1 if grid[row2][col2]['type'] == types[0] else 0
                     if nb_type_2 >= nb_type_1 and nb_type_2 >= 1:
-                        replace_with_big_square(row, col, 2, types[1])
+                        tab_4.append([row, col, 2, types[1]])
+                        cpt += 4
                     elif nb_type_1 > 0:
                         for row2 in range(row, row + 2):
                             for col2 in range(col, col + 2):
                                 if grid[row2][col2]['type'] != None:
-                                    res.append({
+                                    tab_1.append({
                                         's1_gps': grid[row2][col2]['s1_gps'],
                                         's2_gps': grid[row2][col2]['s2_gps'],
                                         's3_gps': grid[row2][col2]['s3_gps'],
@@ -225,6 +230,17 @@ for i in range(0, grid.shape[0] - 4, 4):
                                         'dbm_moy': grid[row2][col2]['dbm_moy'],
                                         'type': types[0]
                                     })
+                                    cpt += 1
+                    else:
+                        cpt_null += 1
+                    
+            if cpt == 16:
+                for m in range(len(tab_4)):
+                    replace_with_big_square(tab_4[m][0], tab_4[m][1], tab_4[m][2], tab_4[m][3])
+                for m in range(len(tab_1)):
+                    res.append(tab_1[m])
+            elif cpt_null < 4:
+                replace_with_big_square(i, j, 4, types[2])
                                     
 
 print(len(res))
@@ -305,6 +321,6 @@ print("Saved shapefile to output/output_moy")
 
 title = "Opérateur " + selected_operator + ", Techno " + selected_techno + ", Taille " + str(size_urb/1000) + " km"
 plt.title(title)
-#plt.show()
+plt.show()
 
 print(area_urb, area_rur, area_per)
