@@ -21,10 +21,11 @@ urbaines_file = "data/Zones URBAINES 41 45 89.shp"
 
 data = np.genfromtxt(filename, delimiter=';', dtype=str, skip_header=1)
 
-size_urb = 500
+size_urb = 1500
 selected_operator = "OP1"
 techno_list = ["4G", "5G", "all"]
 selected_techno = techno_list[2]
+nb_valeur_moy = 1
 
 if selected_techno != "all":
     data = data[data[:, 3] == selected_techno]
@@ -194,6 +195,7 @@ def replace_with_big_square(i, j, size, value):
         's3_gps': s3_gps,
         's4_gps': s4_gps,
         'dbm_moy': dbm_moy,
+        'dbm_count': dbm_count,
         'type': value
     })
 
@@ -234,6 +236,7 @@ for i in range(0, grid.shape[0] - 4, 4):
                                         's3_gps': grid[row2][col2]['s3_gps'],
                                         's4_gps': grid[row2][col2]['s4_gps'],
                                         'dbm_moy': grid[row2][col2]['dbm_moy'],
+                                        'dbm_count': len(grid[row2][col2]['releves']),
                                         'type': types[0]
                                     })
                                     cpt += 1
@@ -263,6 +266,9 @@ area_urb = 0
 area_per = 0
 area_rur = 0
 
+with open("carroyage.pkl", "wb") as fichier:
+    pickle.dump(res, fichier)
+
 moy_values, squares = [], []
 
 with alive_bar(len(res)) as bar:
@@ -272,7 +278,12 @@ with alive_bar(len(res)) as bar:
         x3, y3 = entry["s3_gps"]
         x4, y4 = entry["s4_gps"]
         moy = entry["dbm_moy"]
-        
+        count = entry["dbm_count"]
+
+        if count < nb_valeur_moy:
+            continue
+
+
         polygon = sg.Polygon([(x1, y1), (x2, y2), (x3, y3), (x4, y4)])
         polygons.append(polygon)
         x = [x1, x2, x3, x4]
@@ -325,14 +336,16 @@ norm = plt.Normalize(min(moy_values), max(moy_values))
 
 # Plot each square with its corresponding color based on the normalized moy value
 for i in range(len(moy_values)):
-    moy, x ,y = moy_values[i], squares[i][0], squares[i][1]
+    moy, x , y = moy_values[i], squares[i][0], squares[i][1]
     color = cmap(norm(moy))
     plt.fill(x, y, color=color)
 
 # Add colorbar
 sm = plt.cm.ScalarMappable(cmap=cmap, norm=norm)
 sm.set_array([])
-plt.colorbar(sm, label='Moy Value')
+
+# waring color map
+#plt.colorbar(sm, label='Moy Value')
 
 # Show the plot
 plt.gca().set_aspect('equal', adjustable='box')
