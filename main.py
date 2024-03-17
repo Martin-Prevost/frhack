@@ -206,6 +206,7 @@ for i in range(0, grid.shape[0] - 4, 4):
             tab_4 = []
             tab_1 = []
             cpt = 0
+            cpt_null = 0
             for row in range(i, i + 4, 2):
                 for col in range(j, j + 4, 2):
                     nb_type_2 = 0
@@ -230,12 +231,15 @@ for i in range(0, grid.shape[0] - 4, 4):
                                         'type': types[0]
                                     })
                                     cpt += 1
+                    else:
+                        cpt_null += 1
+                    
             if cpt == 16:
                 for m in range(len(tab_4)):
                     replace_with_big_square(tab_4[m][0], tab_4[m][1], tab_4[m][2], tab_4[m][3])
                 for m in range(len(tab_1)):
                     res.append(tab_1[m])
-            else:
+            elif cpt_null == 4:
                 replace_with_big_square(i, j, 4, types[2])
                                     
 
@@ -317,6 +321,6 @@ print("Saved shapefile to output/output_moy")
 
 title = "Opérateur " + selected_operator + ", Techno " + selected_techno + ", Taille " + str(size_urb/1000) + " km"
 plt.title(title)
-#plt.show()
+plt.show()
 
 print(area_urb, area_rur, area_per)
