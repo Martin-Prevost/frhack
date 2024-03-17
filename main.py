@@ -2,7 +2,7 @@ import numpy as np
 from pyproj import Proj, transform
 import pickle
 from shapely.geometry import Polygon, Point
-import fiona
+import pandas as pd
 import shapely.geometry as sg
 import matplotlib.pyplot as plt
 import geopandas as gpd
@@ -124,25 +124,31 @@ shapes_files = {
     "URB": urbaines_file,
 }
 
+grille_polygons = [carre["polygon_object"] for carre in grille]
+
+# Create a GeoDataFrame for the grille polygons
+grille_gdf = gpd.GeoDataFrame(geometry=grille_polygons)
+
 for key, value in shapes_files.items():
-    with fiona.open(value) as shapefile:
-        for record in shapefile:
-            for shape in record['geometry']['coordinates']:
-                if not isinstance(shape[0], list):
-                    poly = Polygon(shape)
-                else:
-                    poly = Polygon(shape[0])
-                with alive_bar(len(grille)) as bar:
-                    for carre in grille:
-                        carre_poly = carre["polygon_object"]
-                        intersection_area = carre_poly.intersection(poly).area
-                        overlap_percentage = (intersection_area / carre_poly.area) * 100
+    
+    if value is not None:
+        shapefile_gdf = gpd.read_file(value)
 
-                        if carre["area"] < overlap_percentage:
-                            carre["type"] = key
+        joined_gdf =gpd.sjoin(grille_gdf, shapefile_gdf, how="left", op="intersects")
+        joined_gdf = joined_gdf.dropna(subset=["index_right"])
+        joined_gdf["index_right"] = joined_gdf["index_right"].astype(int)
 
-                        carre["area"] = overlap_percentage
-                        bar()
+        for idx, row in joined_gdf.iterrows():
+           if not pd.isna(row["index_right"]):
+            shapefile_poly = shapefile_gdf.iloc[row["index_right"]]["geometry"]
+            intersection_area = grille_gdf.iloc[idx]["geometry"].intersection(shapefile_poly).area
+            overlap_percentage = (intersection_area / grille_gdf.iloc[idx]["geometry"].area) * 100
+
+            if grille[idx]["area"] < overlap_percentage:
+                grille[idx]["type"] = key
+                grille[idx]["area"] = overlap_percentage
+        else:
+            grille[idx]["area"] = 0
 
 len_x = len(x_grid)
 len_y = len(y_grid)
@@ -289,6 +295,6 @@ gdf["label"] = labels_moy
 gdf.to_file('output/output_moy.shp')
 print("Saved shapefile to output/output_moy")
 
-title = "Opérateur " + selected_operator + ", Tchno " + selected_techno + ", Taille " + str(size_urb/1000) + " km"
+title = "Opérateur " + selected_operator + ", Techno " + selected_techno + ", Taille " + str(size_urb/1000) + " km"
 plt.title(title)
 plt.show()
