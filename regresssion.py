@@ -98,7 +98,6 @@ knn_regressor_carroyage.fit(X_train_carroyage, y_train_carroyage)
 
 # Predict on the mesh grid
 X_carroyage = np.array([X0_grille_carroyage, X1_grille_carroyage]).T
-print(X_carroyage)
 Z_carroyage = knn_regressor_carroyage.predict(X_carroyage)
 
 for carre in carroyage:
@@ -109,10 +108,8 @@ for carre in carroyage:
 
 
 
-print(carroyage)
-
 # Plot the predicted values
-plt.scatter(X0_grille_carroyage, X1_grille_carroyage, c=Z_carroyage, cmap='viridis')
+plt.scatter(X0_grille_carroyage, X1_grille_carroyage, c=Z_carroyage, cmap='RdYlGn')
 plt.xlabel('X')
 plt.ylabel('Y')
 plt.title('Kernel Ridge Regression')
