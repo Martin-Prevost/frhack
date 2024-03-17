@@ -280,42 +280,42 @@ def main():
 
 
     # begin regression
+    if predict_moy:
+        X0_train_carroyage = []
+        X1_train_carroyage = []
+        y_train_carroyage = []
 
-    X0_train_carroyage = []
-    X1_train_carroyage = []
-    y_train_carroyage = []
+        X0_grille_carroyage = []
+        X1_grille_carroyage = []
 
-    X0_grille_carroyage = []
-    X1_grille_carroyage = []
+        for carre in res:
+            X0_grille_carroyage.append((carre['s2_gps'][0] - carre['s1_gps'][0])/2 + carre['s1_gps'][0])
+            X1_grille_carroyage.append((carre['s4_gps'][1] - carre['s1_gps'][1])/2 + carre['s1_gps'][1])
+            if carre['dbm_moy'] != 0.:
+                X0_train_carroyage.append((carre['s2_gps'][0] - carre['s1_gps'][0])/2 + carre['s1_gps'][0])
+                X1_train_carroyage.append((carre['s4_gps'][1] - carre['s1_gps'][1])/2 + carre['s1_gps'][1])
+                y_train_carroyage.append(carre['dbm_moy'])
 
-    for carre in res:
-        X0_grille_carroyage.append((carre['s2_gps'][0] - carre['s1_gps'][0])/2 + carre['s1_gps'][0])
-        X1_grille_carroyage.append((carre['s4_gps'][1] - carre['s1_gps'][1])/2 + carre['s1_gps'][1])
-        if carre['dbm_moy'] != 0.:
-            X0_train_carroyage.append((carre['s2_gps'][0] - carre['s1_gps'][0])/2 + carre['s1_gps'][0])
-            X1_train_carroyage.append((carre['s4_gps'][1] - carre['s1_gps'][1])/2 + carre['s1_gps'][1])
-            y_train_carroyage.append(carre['dbm_moy'])
+        X_train_carroyage = np.array([X0_train_carroyage, X1_train_carroyage]).T
 
-    X_train_carroyage = np.array([X0_train_carroyage, X1_train_carroyage]).T
+        # Création du modèle k-NN avec noyau gaussien
+        grilleCV_carroyage = GridSearchCV(KNeighborsRegressor(), param_grid={"n_neighbors": np.arange(1, 10)}, cv=5)
+        grilleCV_carroyage.fit(X_train_carroyage, y_train_carroyage)
+        best_k_carroyage = grilleCV_carroyage.best_params_['n_neighbors']
+        print("Meilleur k:", best_k_carroyage)
+        knn_regressor_carroyage = KNeighborsRegressor(n_neighbors=best_k_carroyage)
+        knn_regressor_carroyage.fit(X_train_carroyage, y_train_carroyage)
 
-    # Création du modèle k-NN avec noyau gaussien
-    grilleCV_carroyage = GridSearchCV(KNeighborsRegressor(), param_grid={"n_neighbors": np.arange(1, 10)}, cv=5)
-    grilleCV_carroyage.fit(X_train_carroyage, y_train_carroyage)
-    best_k_carroyage = grilleCV_carroyage.best_params_['n_neighbors']
-    print("Meilleur k:", best_k_carroyage)
-    knn_regressor_carroyage = KNeighborsRegressor(n_neighbors=best_k_carroyage, weights='distance', metric='euclidian')
-    knn_regressor_carroyage.fit(X_train_carroyage, y_train_carroyage)
+        # Predict on the mesh grid
+        X_carroyage = np.array([X0_grille_carroyage, X1_grille_carroyage]).T
+        print(X_carroyage)
+        Z_carroyage = knn_regressor_carroyage.predict(X_carroyage)
 
-    # Predict on the mesh grid
-    X_carroyage = np.array([X0_grille_carroyage, X1_grille_carroyage]).T
-    print(X_carroyage)
-    Z_carroyage = knn_regressor_carroyage.predict(X_carroyage)
-
-    for carre in res:
-        carre['predict_dbm_moy'] = Z_carroyage[res.index(carre)]
+        for carre in res:
+            carre['predict_dbm_moy'] = Z_carroyage[res.index(carre)]
 
 
-    # end regression
+        # end regression
 
 
     polygons = []
