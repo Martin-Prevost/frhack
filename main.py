@@ -9,7 +9,6 @@ import geopandas as gpd
 from alive_progress import alive_bar
 import os
 
-
 filename = "data/Mesures sur 41 45 89.csv"
 dept_file = "data/Shape Depts 41 45 89.shp"
 town_file = "data/Shape Blois Orleans Auxerre.shp"
@@ -37,9 +36,6 @@ operateurs = data[:, 4]
 dbms = data[:, 5].astype(int)
 puissances_recues = data[:, 6]
 
-lambert93 = Proj(init='epsg:2154') # Lambert 93
-wgs84 = Proj(init='epsg:4326') # WGS84 (lat/lon)
-
 x_min, x_max = np.min(x), np.max(x)
 y_min, y_max = np.min(y), np.max(y)
 
@@ -58,8 +54,8 @@ sommets3_lambert = []
 sommets4_lambert = []
 
 # Calculer la moyenne des points dans chaque cellule de la grille
-for i in range(len(x_grid)-1):
-    for j in range(len(y_grid)-1):
+for i in range(len(x_grid) - 1):
+    for j in range(len(y_grid) - 1):
         x_lower, x_upper = float(x_grid[i]), float(x_grid[i + 1])
         y_lower, y_upper = float(y_grid[j]), float(y_grid[j + 1])
         indices = np.where((x >= x_lower) & (x < x_upper) & (y >= y_lower) & (y < y_upper))
@@ -77,7 +73,7 @@ for i in range(len(x_grid)-1):
             average_power = np.mean(dbms[indices])
             releves = list(zip(ids[indices], [int(e) for e in dbms[indices]], technos[indices]))
             grille.append({
-                'c_l':centre_lambert,
+                'c_l': centre_lambert,
                 's1_l': sommet1_lambert,
                 's2_l': sommet2_lambert,
                 's3_l': sommet3_lambert,
@@ -88,7 +84,7 @@ for i in range(len(x_grid)-1):
                 'area': 0})
         else:
             grille.append({
-                'c_l':centre_lambert,
+                'c_l': centre_lambert,
                 's1_l': sommet1_lambert,
                 's2_l': sommet2_lambert,
                 's3_l': sommet3_lambert,
@@ -98,11 +94,23 @@ for i in range(len(x_grid)-1):
                 'type': None,
                 'area': 0})
 
-x_centres_gps, y_centres_gps = transform(lambert93, wgs84, np.array(centres_lambert)[:, 0], np.array(centres_lambert)[:,1])
-x_sommets1_gps, y_sommets1_gps = transform(lambert93, wgs84, np.array(sommets1_lambert)[:, 0], np.array(sommets1_lambert)[:,1])
-x_sommets2_gps, y_sommets2_gps = transform(lambert93, wgs84, np.array(sommets2_lambert)[:, 0], np.array(sommets2_lambert)[:,1])
-x_sommets3_gps, y_sommets3_gps = transform(lambert93, wgs84, np.array(sommets3_lambert)[:, 0], np.array(sommets3_lambert)[:,1])
-x_sommets4_gps, y_sommets4_gps = transform(lambert93, wgs84, np.array(sommets4_lambert)[:, 0], np.array(sommets4_lambert)[:,1])
+
+def converter(x, y):
+    lambert93 = 'epsg:2154'  # Lambert 93
+    wgs84 = 'epsg:4326'  # WGS84 (lat/lon)
+
+    gdf_object = gpd.GeoDataFrame(None, geometry=gpd.points_from_xy(x, y), crs=lambert93)
+
+    gdf_object = gdf_object.to_crs(wgs84)
+
+    return gdf_object.geometry.x, gdf_object.geometry.y
+
+
+x_centres_gps, y_centres_gps = converter(np.array(centres_lambert)[:, 0], np.array(centres_lambert)[:, 1])
+x_sommets1_gps, y_sommets1_gps = converter(np.array(sommets1_lambert)[:, 0], np.array(sommets1_lambert)[:, 1])
+x_sommets2_gps, y_sommets2_gps = converter(np.array(sommets2_lambert)[:, 0], np.array(sommets2_lambert)[:, 1])
+x_sommets3_gps, y_sommets3_gps = converter(np.array(sommets3_lambert)[:, 0], np.array(sommets3_lambert)[:, 1])
+x_sommets4_gps, y_sommets4_gps = converter(np.array(sommets4_lambert)[:, 0], np.array(sommets4_lambert)[:, 1])
 print(len(x_centres_gps))
 
 for i in range(len(x_centres_gps)):
@@ -147,8 +155,9 @@ for key, value in shapes_files.items():
 len_x = len(x_grid)
 len_y = len(y_grid)
 
-grid = np.array(grille).reshape(len_x-1, len_y-1)
+grid = np.array(grille).reshape(len_x - 1, len_y - 1)
 res = []
+
 
 def replace_with_big_square(i, j, size, value):
     s1_gps = grid[i][j]['s1_gps']
@@ -173,14 +182,15 @@ def replace_with_big_square(i, j, size, value):
         'type': value
     })
 
+
 types = ['URB', 'PER', 'RUR']
-for i in range(0, grid.shape[0]-4, 4):
-    for j in range(0, grid.shape[1]-4, 4):
+for i in range(0, grid.shape[0] - 4, 4):
+    for j in range(0, grid.shape[1] - 4, 4):
         nb_type_rur = 0
         for row in range(i, i + 4):
             for col in range(j, j + 4):
                 nb_type_rur += 1 if grid[row][col]['type'] == types[2] else 0
-        
+
         if nb_type_rur >= 5:
             replace_with_big_square(i, j, 4, types[2])
         else:
@@ -227,7 +237,6 @@ polygons = []
 labels_type = []
 labels_moy = []
 
-
 if not os.path.exists("output/"):
     os.mkdir("output")
 
@@ -238,7 +247,7 @@ with alive_bar(len(json_data["grille"])) as bar:
         x3, y3 = entry["s3_gps"]
         x4, y4 = entry["s4_gps"]
         moy = entry["dbm_moy"]
-        
+
         polygon = sg.Polygon([(x1, y1), (x2, y2), (x3, y3), (x4, y4)])
         polygons.append(polygon)
         x = [x1, x2, x3, x4]
@@ -259,21 +268,21 @@ with alive_bar(len(json_data["grille"])) as bar:
         else:
             color = "k"
             label = "None"
-        
+
         if moy == 0:
             color = "gray"
             label = "Null"
         labels_type.append(label)
-        plt.fill(x, y,color=color)
+        plt.fill(x, y, color=color)
 
         if moy >= -85:
-            color = "r" 
+            color = "r"
             label = "Bonne"
         elif moy < -85 and moy >= -105:
-            color = "g" 
+            color = "g"
             label = "Moyenne"
         elif moy < -105:
-            color = "b" 
+            color = "b"
             label = "Mauvaise"
         labels_moy.append(label)
 
@@ -289,6 +298,6 @@ gdf["label"] = labels_moy
 gdf.to_file('output/output_moy.shp')
 print("Saved shapefile to output/output_moy")
 
-title = "Opérateur " + selected_operator + ", Tchno " + selected_techno + ", Taille " + str(size_urb/1000) + " km"
+title = "Opérateur " + selected_operator + ", Tchno " + selected_techno + ", Taille " + str(size_urb / 1000) + " km"
 plt.title(title)
 plt.show()
