@@ -299,11 +299,11 @@ def main():
     X_train_carroyage = np.array([X0_train_carroyage, X1_train_carroyage]).T
 
     # Création du modèle k-NN avec noyau gaussien
-    grilleCV_carroyage = GridSearchCV(KNeighborsRegressor(), param_grid={"n_neighbors": np.arange(1, 10)}, cv=5)
+    grilleCV_carroyage = GridSearchCV(KNeighborsRegressor(), param_grid={"n_neighbors": np.arange(1, 10), 'weights':'distance'}, cv=5)
     grilleCV_carroyage.fit(X_train_carroyage, y_train_carroyage)
     best_k_carroyage = grilleCV_carroyage.best_params_['n_neighbors']
     print("Meilleur k:", best_k_carroyage)
-    knn_regressor_carroyage = KNeighborsRegressor(n_neighbors=best_k_carroyage)
+    knn_regressor_carroyage = KNeighborsRegressor(n_neighbors=best_k_carroyage, weights='distance')
     knn_regressor_carroyage.fit(X_train_carroyage, y_train_carroyage)
 
     # Predict on the mesh grid
