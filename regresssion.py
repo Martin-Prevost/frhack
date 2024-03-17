@@ -38,7 +38,7 @@ print("Shape of X_train:", X_train.shape)
 print("Shape of Y_train:", y_train.shape)
 
 # Création du modèle k-NN avec noyau gaussien
-grilleCV = GridSearchCV(KNeighborsRegressor(), param_grid={"n_neighbors": np.arange(1, 10)}, cv=5)
+grilleCV = GridSearchCV(KNeighborsRegressor(), param_grid={"n_neighbors": np.arange(3, 10)}, cv=5)
 grilleCV.fit(X_train, y_train)
 best_k = grilleCV.best_params_['n_neighbors']
 print("Meilleur k:", best_k)
@@ -94,13 +94,15 @@ print("Meilleur k:", best_k_carroyage)
 knn_regressor_carroyage = KNeighborsRegressor(n_neighbors=best_k_carroyage)
 knn_regressor_carroyage.fit(X_train_carroyage, y_train_carroyage)
 
-# Generate a mesh grid
-
-
 # Predict on the mesh grid
 X_carroyage = np.array([X0_grille_carroyage, X1_grille_carroyage]).T
 print(X_carroyage)
 Z_carroyage = knn_regressor_carroyage.predict(X_carroyage)
+
+for carre in carroyage:
+    carre['predict_dbm_moy'] = Z_carroyage[carroyage.index(carre)]
+
+print(carroyage)
 
 # Plot the predicted values
 plt.scatter(X0_grille_carroyage, X1_grille_carroyage, c=Z_carroyage, cmap='viridis')
@@ -109,5 +111,4 @@ plt.ylabel('Y')
 plt.title('Kernel Ridge Regression')
 plt.colorbar()
 plt.show()
-
 
