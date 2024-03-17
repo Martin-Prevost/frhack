@@ -231,9 +231,9 @@ def trouver_chemin_max(matrice, point_depart, point_arrivee):
 
 print("Point de départ :", point_depart)
 print("Point d'arrivée :", point_arrivee)
+print("Point d'arrivée :", point_trois)
 
-res = trouver_chemin_max(grid, point_depart, point_arrivee)
-res.append(trouver_chemin_max(grid, point_depart, point_trois))
+res = trouver_chemin_max(grid, point_depart, point_arrivee) + trouver_chemin_max(grid, point_arrivee, point_trois)
 
 
 polygons = []
