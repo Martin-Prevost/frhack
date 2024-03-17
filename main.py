@@ -170,37 +170,35 @@ def replace_with_big_square(i, j, size, value):
 types = ['URB', 'PER', 'RUR']
 for i in range(0, grid.shape[0]-4, 4):
     for j in range(0, grid.shape[1]-4, 4):
-        nb_type = [0, 0, 0, 0]
+        nb_type_rur = 0
         for row in range(i, i + 4):
             for col in range(j, j + 4):
-                nb_type[0] += 1 if grid[row][col]['type'] == types[0] else 0
-                nb_type[1] += 1 if grid[row][col]['type'] == types[1] else 0
-                nb_type[2] += 1 if grid[row][col]['type'] == types[2] else 0
-                nb_type[3] += 1 if grid[row][col]['type'] == None else 0
+                nb_type_rur += 1 if grid[row][col]['type'] == types[2] else 0
         
-        max_index = nb_type.index(max(nb_type))
-        if max_index == 2:
+        if nb_type_rur >= 5:
             replace_with_big_square(i, j, 4, types[2])
         else:
             for row in range(i, i + 4, 2):
                 for col in range(j, j + 4, 2):
                     nb_type_2 = 0
+                    nb_type_1 = 0
                     for row2 in range(row, row + 2):
                         for col2 in range(col, col + 2):
                             nb_type_2 += 1 if grid[row2][col2]['type'] == types[1] else 0
-                    if nb_type_2 >= 2:
+                            nb_type_1 += 1 if grid[row2][col2]['type'] == types[0] else 0
+                    if nb_type_2 >= nb_type_1 and nb_type_2 >= 1:
                         replace_with_big_square(row, col, 2, types[1])
                     else:
                         for row2 in range(row, row + 2):
                             for col2 in range(col, col + 2):
-                                if grid[row2][col2]['type'] == types[0]:
+                                if grid[row2][col2]['type'] == types[0] or grid[row2][col2]['type'] == types[1]:
                                     res.append({
                                         's1_gps': grid[row2][col2]['s1_gps'],
                                         's2_gps': grid[row2][col2]['s2_gps'],
                                         's3_gps': grid[row2][col2]['s3_gps'],
                                         's4_gps': grid[row2][col2]['s4_gps'],
                                         'dbm_moy': grid[row2][col2]['dbm_moy'],
-                                        'type': grid[row2][col2]['type']
+                                        'type': types[0]
                                     })
                                 elif grid[row2][col2]['type'] != None:
                                     res.append({
@@ -208,7 +206,7 @@ for i in range(0, grid.shape[0]-4, 4):
                                         's2_gps': grid[row2][col2]['s2_gps'],
                                         's3_gps': grid[row2][col2]['s3_gps'],
                                         's4_gps': grid[row2][col2]['s4_gps'],
-                                        'dbm_moy': 0,
+                                        'dbm_moy': grid[row2][col2]['dbm_moy'],
                                         'type': grid[row2][col2]['type']
                                     })
 
