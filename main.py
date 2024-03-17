@@ -11,7 +11,8 @@ import os
 
 
 filename = "data/Mesures sur 41 45 89.csv"
-
+dept_file = "data/Shape Depts 41 45 89.shp"
+town_file = "data/Shape Blois Orleans Auxerre.shp"
 peri_urbaines_file = "data/Zones PERI URBAINES 41 45 89.shp"
 rurales_file = "data/Zones RURALES 41 45 89.shp"
 urbaines_file = "data/Zones URBAINES 41 45 89.shp"
@@ -216,14 +217,6 @@ with open("etape3.pkl", "wb") as f:
     pickle.dump({'grille': res}, f)
 
 json_data = {'grille': res}
-
-file1 = "data/Shape Depts 41 45 89.shp"
-file2 = "data/Shape Blois Orleans Auxerre.shp"
-file3 = "data/Zones RURALES 41 45 89.shp"
-file4 = "data/Zones URBAINES 41 45 89.shp"
-file5 = "data/Zones PERI URBAINES 41 45 89.shp"
-
-files = [file1,file2,file3,file4,file5]
 
 polygons = []
 labels_type = []
