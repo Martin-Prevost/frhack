@@ -61,7 +61,7 @@ def init():
     parser.add_argument('--peri-urbaines_file', type=str, default="data/Zones PERI URBAINES 41 45 89.shp", help='the name of the peri-urban shape file (default: "data/Zones PERI URBAINES 41 45 89.shp")')
     parser.add_argument('--rurales-file', type=str, default="data/Zones RURALES 41 45 89.shp", help='the name of the rural shape file (default: "data/Zones RURALES 41 45 89.shp")')
     parser.add_argument('--urbaines-file', type=str, default="data/Zones URBAINES 41 45 89.shp", help='the name of the urban shape file (default: "data/Zones URBAINES 41 45 89.shp")')
-    parser.add_argument('--size-urb', type=int, default=500, help='the size of the urban area (default: 1500)')
+    parser.add_argument('--size-urb', type=int, default=1500, help='the size of the urban area (default: 1500)')
     parser.add_argument('--selected_operator', type=str, default="OP3", help='the selected operator (default: "OP1")')
     parser.add_argument('--selected_techno', type=str, default="all", choices=["4G", "5G", "all"], help='the selected technology (default: "all", choices: ["4G", "5G", "all"])')
     parser.add_argument('--predict', type=bool, default=False, help='Add the prediction')
