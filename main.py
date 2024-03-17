@@ -239,7 +239,7 @@ for i in range(0, grid.shape[0] - 4, 4):
                     replace_with_big_square(tab_4[m][0], tab_4[m][1], tab_4[m][2], tab_4[m][3])
                 for m in range(len(tab_1)):
                     res.append(tab_1[m])
-            elif cpt_null == 4:
+            elif cpt_null < 4:
                 replace_with_big_square(i, j, 4, types[2])
                                     
 
