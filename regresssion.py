@@ -42,7 +42,7 @@ grilleCV = GridSearchCV(KNeighborsRegressor(), param_grid={"n_neighbors": np.ara
 grilleCV.fit(X_train, y_train)
 best_k = grilleCV.best_params_['n_neighbors']
 print("Meilleur k:", best_k)
-knn_regressor = KNeighborsRegressor(n_neighbors=best_k)
+knn_regressor = KNeighborsRegressor(n_neighbors=best_k, metric='euclidean', weights='distance')
 knn_regressor.fit(X_train, y_train)
 
 # Generate a mesh grid
