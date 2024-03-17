@@ -65,6 +65,8 @@ plt.colorbar()
 plt.show()
 
 
+
+
 # Open carroyage.pkl
 with open('carroyage.pkl', 'rb') as file:
     carroyage = pickle.load(file)
@@ -101,6 +103,11 @@ Z_carroyage = knn_regressor_carroyage.predict(X_carroyage)
 
 for carre in carroyage:
     carre['predict_dbm_moy'] = Z_carroyage[carroyage.index(carre)]
+
+
+
+
+
 
 print(carroyage)
 
