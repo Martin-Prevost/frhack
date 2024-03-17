@@ -11,22 +11,10 @@ from alive_progress import alive_bar
 import os
 import time
 import argparse
+from sklearn.neighbors import KNeighborsRegressor
+from sklearn.model_selection import GridSearchCV
 
 start_time = time.time()
-
-filename = "data/Mesures sur 41 45 89.csv"
-dept_file = "data/Shape Depts 41 45 89.shp"
-town_file = "data/Shape Blois Orleans Auxerre.shp"
-peri_urbaines_file = "data/Zones PERI URBAINES 41 45 89.shp"
-rurales_file = "data/Zones RURALES 41 45 89.shp"
-urbaines_file = "data/Zones URBAINES 41 45 89.shp"
-
-size_urb = 1500
-selected_operator = "OP1"
-techno_list = ["4G", "5G", "all"]
-selected_techno = techno_list[2]
-nb_valeur_moy = 1
-
 
 def converter(x, y):
     lambert93 = 'epsg:2154'  # Lambert 93
@@ -65,7 +53,7 @@ def replace_with_big_square(i, j, size, value, grid, res):
 def init():
 
     global filename, peri_urbaines_file, rurales_file, urbaines_file
-    global size_urb, selected_techno, selected_operator, nb_valeur_moy
+    global size_urb, selected_techno, selected_operator, nb_valeur_moy, predict_moy
 
     parser = argparse.ArgumentParser(description='Challenge 3 command line tool')
 
@@ -73,9 +61,11 @@ def init():
     parser.add_argument('--peri-urbaines_file', type=str, default="data/Zones PERI URBAINES 41 45 89.shp", help='the name of the peri-urban shape file (default: "data/Zones PERI URBAINES 41 45 89.shp")')
     parser.add_argument('--rurales-file', type=str, default="data/Zones RURALES 41 45 89.shp", help='the name of the rural shape file (default: "data/Zones RURALES 41 45 89.shp")')
     parser.add_argument('--urbaines-file', type=str, default="data/Zones URBAINES 41 45 89.shp", help='the name of the urban shape file (default: "data/Zones URBAINES 41 45 89.shp")')
-    parser.add_argument('--size-urb', type=int, default=1500, help='the size of the urban area (default: 1500)')
-    parser.add_argument('--selected_operator', type=str, default="OP1", help='the selected operator (default: "OP1")')
+    parser.add_argument('--size-urb', type=int, default=500, help='the size of the urban area (default: 1500)')
+    parser.add_argument('--selected_operator', type=str, default="OP3", help='the selected operator (default: "OP1")')
     parser.add_argument('--selected_techno', type=str, default="all", choices=["4G", "5G", "all"], help='the selected technology (default: "all", choices: ["4G", "5G", "all"])')
+    parser.add_argument('--predict', type=bool, default=False, help='Add the prediction')
+    parser.add_argument('--nb_val_moy', type=int, default=0, help='Number of values used for average calculation')
 
     # Parse the arguments
     args = parser.parse_args()
@@ -88,6 +78,8 @@ def init():
     size_urb = args.size_urb
     selected_operator = args.selected_operator
     selected_techno = args.selected_techno
+    nb_valeur_moy = args.nb_val_moy
+    predict_moy = args.predict
 
 def main():
 
@@ -199,8 +191,8 @@ def main():
 
     for key, value in shapes_files.items():
 
-        print("Extracting file %s " % value)
-        if value is not None:
+        if os.path.exists(value):
+            print("Extracting file %s " % value)
             shapefile_gdf = gpd.read_file(value)
             shapefile_gdf.crs = "EPSG:4326"
             grille_gdf_reprojected = grille_gdf.to_crs(shapefile_gdf.crs)
@@ -223,6 +215,8 @@ def main():
                     else:
                         grille[idx]["area"] = 0
                     bar()
+        else:
+            print("File %s doesn't exists !" % value)
 
     len_x = len(x_grid)
     len_y = len(y_grid)
@@ -285,6 +279,45 @@ def main():
     print(len(res))
 
 
+    # begin regression
+
+    X0_train_carroyage = []
+    X1_train_carroyage = []
+    y_train_carroyage = []
+
+    X0_grille_carroyage = []
+    X1_grille_carroyage = []
+
+    for carre in res:
+        X0_grille_carroyage.append((carre['s2_gps'][0] - carre['s1_gps'][0])/2 + carre['s1_gps'][0])
+        X1_grille_carroyage.append((carre['s4_gps'][1] - carre['s1_gps'][1])/2 + carre['s1_gps'][1])
+        if carre['dbm_moy'] != 0.:
+            X0_train_carroyage.append((carre['s2_gps'][0] - carre['s1_gps'][0])/2 + carre['s1_gps'][0])
+            X1_train_carroyage.append((carre['s4_gps'][1] - carre['s1_gps'][1])/2 + carre['s1_gps'][1])
+            y_train_carroyage.append(carre['dbm_moy'])
+
+    X_train_carroyage = np.array([X0_train_carroyage, X1_train_carroyage]).T
+
+    # Création du modèle k-NN avec noyau gaussien
+    grilleCV_carroyage = GridSearchCV(KNeighborsRegressor(), param_grid={"n_neighbors": np.arange(1, 10)}, cv=5)
+    grilleCV_carroyage.fit(X_train_carroyage, y_train_carroyage)
+    best_k_carroyage = grilleCV_carroyage.best_params_['n_neighbors']
+    print("Meilleur k:", best_k_carroyage)
+    knn_regressor_carroyage = KNeighborsRegressor(n_neighbors=best_k_carroyage, weights='distance', metric='euclidian')
+    knn_regressor_carroyage.fit(X_train_carroyage, y_train_carroyage)
+
+    # Predict on the mesh grid
+    X_carroyage = np.array([X0_grille_carroyage, X1_grille_carroyage]).T
+    print(X_carroyage)
+    Z_carroyage = knn_regressor_carroyage.predict(X_carroyage)
+
+    for carre in res:
+        carre['predict_dbm_moy'] = Z_carroyage[res.index(carre)]
+
+
+    # end regression
+
+
     polygons = []
     labels_type = []
     labels_moy = []
@@ -307,12 +340,16 @@ def main():
             x2, y2 = entry["s2_gps"]
             x3, y3 = entry["s3_gps"]
             x4, y4 = entry["s4_gps"]
-            moy = entry["dbm_moy"]
+
             count = entry["dbm_count"]
+
+            if predict_moy:
+                moy = entry["predict_dbm_moy"]
+            else:
+                moy = entry["dbm_moy"]
 
             if count < nb_valeur_moy:
                 continue
-
 
             polygon = sg.Polygon([(x1, y1), (x2, y2), (x3, y3), (x4, y4)])
             polygons.append(polygon)

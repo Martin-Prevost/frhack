@@ -203,38 +203,60 @@ def trouver_point_proche(matrice, coord_centre):
 # Trouver le point le plus proche du centre_gps
 pt_1 = trouver_point_proche(grid, (1.309, 47.583))
 pt_2 = trouver_point_proche(grid, (1.908, 47.889))
-pt_3 = trouver_point_proche(grid, (3.575, 47.889))
+pt_3 = trouver_point_proche(grid, (3.575, 47.775))
+print(pt_1, pt_2, pt_3)
+
+import networkx as nx
+
+def find_max_path(matrix, start, end):
+    # Trouver le minimum de toutes les valeurs
+    min_value = min(matrix[i][j]['dbm_moy'] for row in matrix for j in range(len(row)) for i in range(len(row)))
+    
+    # Ajouter le minimum à chaque valeur
+    for row in matrix:
+        for cell in row:
+            if cell['dbm_moy'] != 0:
+                cell['dbm_moy'] += abs(min_value)
+    
+    # Création d'un graphe pondéré à partir de la matrice modifiée
+    G = nx.Graph()
+    rows, cols = len(matrix), len(matrix[0])
+    for i in range(rows):
+        for j in range(cols):
+            if i > 0:
+                weight = matrix[i][j]['dbm_moy'] + matrix[i-1][j]['dbm_moy']
+                G.add_edge((i, j), (i-1, j), weight=weight)
+            if j > 0:
+                weight = matrix[i][j]['dbm_moy'] + matrix[i][j-1]['dbm_moy']
+                G.add_edge((i, j), (i, j-1), weight=weight)
+            if i < rows - 1:
+                weight = matrix[i][j]['dbm_moy'] + matrix[i+1][j]['dbm_moy']
+                G.add_edge((i, j), (i+1, j), weight=weight)
+            if j < cols - 1:
+                weight = matrix[i][j]['dbm_moy'] + matrix[i][j+1]['dbm_moy']
+                G.add_edge((i, j), (i, j+1), weight=weight)
+    
+    # Recherche du chemin le plus court avec l'algorithme de Dijkstra
+    shortest_path = nx.shortest_path(G, source=start, target=end, weight='weight')
+    
+    return shortest_path
 
 
-def trouver_chemin_max(matrice, point_depart, point_arrivee):
-    # Fonction auxiliaire pour trouver le voisinage valide d'un point
-    def voisinage(point):
-        x, y = point
-        voisins = [(x+1, y), (x-1, y), (x, y+1), (x, y-1)]
-        return [(nx, ny) for nx, ny in voisins if 0 <= nx < len(matrice) and 0 <= ny < len(matrice[0])]
+path  = find_max_path(grid, pt_1, pt_3)
 
-    # Fonction auxiliaire pour trouver le voisin avec la valeur maximale
-    def voisin_max(voisins):
-        return max(voisins, key=lambda v: (matrice[v[0]][v[1]]['dbm_moy'] if matrice[v[0]][v[1]]['dbm_moy'] != 0 else -120))
-
-    chemin = [point_depart]
-    point_actuel = point_depart
-
-    while point_actuel != point_arrivee:
-        voisins_valides = [voisin for voisin in voisinage(point_actuel) if voisin not in chemin]
-        if not voisins_valides:
-            break
-        point_actuel = voisin_max(voisins_valides)
-        chemin.append(point_actuel)
-
-    return [matrice[x][y] for x, y in chemin]
-
-print("Point de départ :", pt_1)
-print("Point d'arrivée :", pt_2)
-print("Point d'arrivée :", pt_3)
-
-res = trouver_chemin_max(grid, pt_1, pt_2) + trouver_chemin_max(grid, pt_2, pt_3)
-
+res = []
+for node in path:
+    i, j = node
+    res.append({
+            's1_gps': grid[i][j]['s1_gps'],
+            's2_gps': grid[i][j]['s2_gps'],
+            's3_gps': grid[i][j]['s3_gps'],
+            's4_gps': grid[i][j]['s4_gps'],
+            'dbm_moy': grid[i][j]['dbm_moy'],
+            'dbm_count': len(grid[i][j]['releves']),
+            'type': grid[i][j]['type']
+        })
+print(len(res))
 
 polygons = []
 labels_type = []
@@ -257,12 +279,10 @@ with alive_bar(len(res)) as bar:
         x3, y3 = entry["s3_gps"]
         x4, y4 = entry["s4_gps"]
         moy = entry["dbm_moy"]
-        """
         count = entry["dbm_count"]
 
         if count < nb_valeur_moy:
             continue
-        """
 
         polygon = sg.Polygon([(x1, y1), (x2, y2), (x3, y3), (x4, y4)])
         polygons.append(polygon)
