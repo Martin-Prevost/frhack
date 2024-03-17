@@ -17,9 +17,14 @@ peri_urbaines_file = "data/Zones PERI URBAINES 41 45 89.shp"
 rurales_file = "data/Zones RURALES 41 45 89.shp"
 urbaines_file = "data/Zones URBAINES 41 45 89.shp"
 
-selected_operator = "OP1"
-
 data = np.genfromtxt(filename, delimiter=';', dtype=str, skip_header=1)
+
+selected_operator = "OP1"
+techno_list = ["4G", "5G", "all"]
+selected_techno = techno_list[0]
+
+if techno_list != "all":
+    data = data[data[:, 3] == selected_techno]
 
 data = data[data[:, 4] == selected_operator]
 
