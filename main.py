@@ -19,11 +19,12 @@ urbaines_file = "data/Zones URBAINES 41 45 89.shp"
 
 data = np.genfromtxt(filename, delimiter=';', dtype=str, skip_header=1)
 
+size_urb = 1500
 selected_operator = "OP1"
 techno_list = ["4G", "5G", "all"]
-selected_techno = techno_list[0]
+selected_techno = techno_list[2]
 
-if techno_list != "all":
+if selected_techno != "all":
     data = data[data[:, 3] == selected_techno]
 
 data = data[data[:, 4] == selected_operator]
@@ -43,9 +44,8 @@ x_min, x_max = np.min(x), np.max(x)
 y_min, y_max = np.min(y), np.max(y)
 
 # Définir la taille de la grille et le nombre de cellules
-pas = 500
-x_grid = np.arange(x_min, x_max + pas, pas)  # Ajoutez 1 à grid_size pour avoir le bon nombre de cellules
-y_grid = np.arange(y_min, y_max + pas, pas)
+x_grid = np.arange(x_min, x_max + size_urb, size_urb)  # Ajoutez 1 à grid_size pour avoir le bon nombre de cellules
+y_grid = np.arange(y_min, y_max + size_urb, size_urb)
 
 print("longueur x_grid", len(x_grid))
 print("longueur y_grid", len(y_grid))
@@ -289,4 +289,6 @@ gdf["label"] = labels_moy
 gdf.to_file('output/output_moy.shp')
 print("Saved shapefile to output/output_moy")
 
+title = "Opérateur " + selected_operator + ", Tchno " + selected_techno + ", Taille " + str(size_urb/1000) + " km"
+plt.title(title)
 plt.show()
