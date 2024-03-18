@@ -395,8 +395,9 @@ def main():
 
             bar()
 
-
-    cmap = cm.get_cmap('RdYlGn')
+    import matplotlib
+    # cmap = cm.get_cmap('RdYlGn')
+    cmap = matplotlib.colormaps["RdYlGn"]
     # Normalize the moy values to [0, 1] for color mapping
     print(f"Min : {min(moy_values)} and Max : {max(moy_values)}")
     norm = plt.Normalize(min(moy_values), max(moy_values))
@@ -412,7 +413,7 @@ def main():
     sm.set_array([])
 
     # waring color map
-    #plt.colorbar(sm, label='Moy Value')
+    # plt.colorbar(sm, label='Moy Value')
 
     # Show the plot
     plt.gca().set_aspect('equal', adjustable='box')
@@ -434,7 +435,7 @@ def main():
 
     plt.show()
 
-    print(area_urb, area_rur, area_per)
+    #print(area_urb, area_rur, area_per)
 
 if __name__ == "__main__":
     try:

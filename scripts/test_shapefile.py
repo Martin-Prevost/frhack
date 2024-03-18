@@ -35,11 +35,11 @@ labels_moy = []
 #        plt.plot(x, y)
 #        polygons.append(datas)
 #
-import os
+import os, sys
 if not os.path.exists("output/"):
     os.mkdir("output")
 
-with open("etape3.pkl", "rb") as fichier:
+with open(sys.argv[1], "rb") as fichier:
     json_data = pickle.load(fichier)
     with alive_bar(len(json_data["grille"])) as bar:
         for entry in json_data["grille"]:

@@ -16,6 +16,8 @@ test.py
 *.prj
 *.shx
 *.pdf
+*.pkl 
 
 grille.json
-data
+data/
+
